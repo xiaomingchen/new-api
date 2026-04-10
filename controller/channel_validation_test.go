@@ -7,20 +7,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidateChannelAcceptsWebsiteURL(t *testing.T) {
+func TestValidateChannelAcceptsProxyWebsiteURL(t *testing.T) {
 	channel := &model.Channel{
 		Type:       1,
 		Key:        "sk-test",
+		IsProxy:    true,
 		WebsiteURL: stringPtr("https://example.com/channel-config"),
 	}
 
 	require.NoError(t, validateChannel(channel, false))
 }
 
+func TestValidateChannelRejectsProxyWithoutWebsiteURL(t *testing.T) {
+	channel := &model.Channel{
+		Type:    1,
+		Key:     "sk-test",
+		IsProxy: true,
+	}
+
+	require.ErrorContains(t, validateChannel(channel, false), "跳转地址")
+}
+
 func TestValidateChannelRejectsInvalidWebsiteURL(t *testing.T) {
 	channel := &model.Channel{
 		Type:       1,
 		Key:        "sk-test",
+		IsProxy:    true,
 		WebsiteURL: stringPtr("example.com/channel-config"),
 	}
 
