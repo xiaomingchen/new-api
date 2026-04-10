@@ -27,7 +27,6 @@ import {
   SplitButtonGroup,
   Tag,
   Tooltip,
-  Typography,
 } from '@douyinfe/semi-ui';
 import {
   timestamp2string,
@@ -49,6 +48,7 @@ import {
   IconTreeTriangleDown,
   IconMore,
   IconAlertTriangle,
+  IconLink,
 } from '@douyinfe/semi-icons';
 import { FaRandom } from 'react-icons/fa';
 
@@ -395,17 +395,21 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.ID,
       title: t('ID'),
       dataIndex: 'id',
+      width: 72,
     },
     {
       key: COLUMN_KEYS.NAME,
       title: t('名称'),
       dataIndex: 'name',
+      width: 240,
       render: (text, record, index) => {
         const passThroughEnabled = isRequestPassThroughEnabled(record);
         const upstreamUpdateMeta = getUpstreamUpdateMeta(record);
         const pendingAddCount = upstreamUpdateMeta.pendingAddModels.length;
         const pendingRemoveCount =
           upstreamUpdateMeta.pendingRemoveModels.length;
+        const websiteURL =
+          typeof record.website_url === 'string' ? record.website_url.trim() : '';
         const showUpstreamUpdateTag =
           upstreamUpdateMeta.supported &&
           upstreamUpdateMeta.enabled &&
@@ -445,13 +449,27 @@ export const getChannelsColumns = ({
             <span>{text}</span>
           );
 
-        if (!passThroughEnabled && !showUpstreamUpdateTag) {
+        if (!passThroughEnabled && !showUpstreamUpdateTag && !websiteURL) {
           return nameNode;
         }
 
         return (
           <Space spacing={6} align='center'>
             {nameNode}
+            {websiteURL && record.children === undefined && (
+              <Tooltip content={websiteURL} position='top'>
+                <span
+                  className='inline-flex items-center gap-1 text-blue-500 cursor-pointer text-xs'
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    window.open(websiteURL, '_blank', 'noopener');
+                  }}
+                >
+                  <IconLink />
+                  {t('站点')}
+                </span>
+              </Tooltip>
+            )}
             {passThroughEnabled && (
               <Tooltip
                 content={t(
@@ -523,6 +541,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.GROUP,
       title: t('分组'),
       dataIndex: 'group',
+      width: 180,
       render: (text, record, index) => (
         <div>
           <Space spacing={2}>
@@ -542,6 +561,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.TYPE,
       title: t('类型'),
       dataIndex: 'type',
+      width: 120,
       render: (text, record, index) => {
         if (record.children === undefined) {
           return <>{renderType(text, record, t)}</>;
@@ -554,6 +574,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.STATUS,
       title: t('状态'),
       dataIndex: 'status',
+      width: 140,
       render: (text, record, index) => {
         if (text === 3) {
           if (record.other_info === '') {
@@ -582,12 +603,14 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.RESPONSE_TIME,
       title: t('响应时间'),
       dataIndex: 'response_time',
+      width: 130,
       render: (text, record, index) => <div>{renderResponseTime(text, t)}</div>,
     },
     {
       key: COLUMN_KEYS.BALANCE,
       title: t('已用/剩余'),
       dataIndex: 'expired_time',
+      width: 180,
       render: (text, record, index) => {
         if (record.children === undefined) {
           return (
@@ -638,6 +661,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.USED_TOKENS,
       title: t('总 Token'),
       dataIndex: 'used_tokens',
+      width: 130,
       render: (text, record) => (
         <Tooltip content={t('累计 Token 使用量')}>
           <Tag color='white' type='ghost' shape='circle'>
@@ -650,6 +674,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.USED_TOKENS_TODAY,
       title: t('今日 Token'),
       dataIndex: 'used_tokens_today',
+      width: 130,
       render: (text, record) => (
         <Tooltip content={t('当日 Token 使用量')}>
           <Tag color='light-blue' type='light' shape='circle'>
@@ -662,6 +687,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.CURRENT_CONNECTIONS,
       title: t('当前连接数'),
       dataIndex: 'current_connections',
+      width: 120,
       render: (text, record) => (
         <Tooltip content={t('当前正在使用该渠道的请求数')}>
           {renderCurrentConnections(record.current_connections, t)}
@@ -672,12 +698,14 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.LAST_USED_AT,
       title: t('最近使用时间'),
       dataIndex: 'last_used_at',
+      width: 130,
       render: (text, record) => renderLastUsedAt(record.last_used_at, t),
     },
     {
       key: COLUMN_KEYS.PRIORITY,
       title: t('优先级'),
       dataIndex: 'priority',
+      width: 110,
       render: (text, record, index) => {
         if (record.children === undefined) {
           return (
@@ -733,6 +761,7 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.WEIGHT,
       title: t('权重'),
       dataIndex: 'weight',
+      width: 110,
       render: (text, record, index) => {
         if (record.children === undefined) {
           return (
@@ -789,6 +818,7 @@ export const getChannelsColumns = ({
       title: '',
       dataIndex: 'operate',
       fixed: 'right',
+      width: 180,
       render: (text, record, index) => {
         if (record.children === undefined) {
           const upstreamUpdateMeta = getUpstreamUpdateMeta(record);

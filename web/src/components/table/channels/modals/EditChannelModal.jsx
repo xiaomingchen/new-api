@@ -187,6 +187,7 @@ const EditChannelModal = (props) => {
     priority: 0,
     weight: 0,
     tag: '',
+    website_url: '',
     multi_key_mode: 'random',
     // 渠道额外设置的默认值
     force_format: false,
@@ -2436,6 +2437,15 @@ const EditChannelModal = (props) => {
                     maxLength={255}
                     showClear
                     onChange={(value) => handleInputChange('remark', value)}
+                  />
+                  <Form.Input
+                    field='website_url'
+                    label={t('关联网站')}
+                    placeholder={t('请输入 http:// 或 https:// 开头的网址')}
+                    showClear
+                    onChange={(value) =>
+                      handleInputChange('website_url', value)
+                    }
                   />
 
                   <Row gutter={12}>
