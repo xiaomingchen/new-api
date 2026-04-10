@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConvertOpenAIResponsesRequestSanitizesUnsupportedInputStatus(t *testing.T) {
+func TestConvertOpenAIResponsesRequestDefaultsInstructionsAndStore(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
@@ -38,11 +38,7 @@ func TestConvertOpenAIResponsesRequestSanitizesUnsupportedInputStatus(t *testing
 	converted, ok := convertedAny.(dto.OpenAIResponsesRequest)
 	require.True(t, ok)
 
-	assert.JSONEq(t, `[
-		{"type":"message","status":"incomplete","content":[{"type":"output_text","status":"incomplete","text":"oops"}]},
-		{"type":"message","status":"completed"},
-		{"type":"message","status":"in_progress"}
-	]`, string(converted.Input))
+	assert.JSONEq(t, string(request.Input), string(converted.Input))
 	assert.JSONEq(t, `false`, string(converted.Store))
 	assert.JSONEq(t, `""`, string(converted.Instructions))
 }

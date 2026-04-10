@@ -59,6 +59,13 @@ func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 	if err != nil {
 		return types.NewError(fmt.Errorf("failed to copy request to GeneralOpenAIRequest: %w", err), types.ErrorCodeInvalidRequest, types.ErrOptionWithSkipRetry())
 	}
+	if len(request.Input) > 0 {
+		sanitizedInput, err := relaycommon.SanitizeResponsesInputStatuses(request.Input)
+		if err != nil {
+			return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+		}
+		request.Input = sanitizedInput
+	}
 
 	err = helper.ModelMappedHelper(c, info, request)
 	if err != nil {
