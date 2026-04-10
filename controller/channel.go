@@ -458,16 +458,20 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 		return fmt.Errorf("渠道额外设置[channel setting] 格式错误：%s", err.Error())
 	}
 
+	websiteURL := ""
 	if channel.WebsiteURL != nil {
-		websiteURL := strings.TrimSpace(*channel.WebsiteURL)
-		if websiteURL != "" {
-			parsedURL, err := url.ParseRequestURI(websiteURL)
-			if err != nil || parsedURL == nil || parsedURL.Host == "" {
-				return fmt.Errorf("关联网站地址必须是合法的 http:// 或 https:// URL")
-			}
-			if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-				return fmt.Errorf("关联网站地址必须是合法的 http:// 或 https:// URL")
-			}
+		websiteURL = strings.TrimSpace(*channel.WebsiteURL)
+	}
+	if channel.IsProxy && websiteURL == "" {
+		return fmt.Errorf("代理渠道必须配置跳转地址")
+	}
+	if websiteURL != "" {
+		parsedURL, err := url.ParseRequestURI(websiteURL)
+		if err != nil || parsedURL == nil || parsedURL.Host == "" {
+			return fmt.Errorf("关联网站地址必须是合法的 http:// 或 https:// URL")
+		}
+		if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+			return fmt.Errorf("关联网站地址必须是合法的 http:// 或 https:// URL")
 		}
 	}
 

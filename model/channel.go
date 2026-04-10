@@ -31,6 +31,7 @@ type Channel struct {
 	TestTime           int64   `json:"test_time" gorm:"bigint"`
 	ResponseTime       int     `json:"response_time"` // in milliseconds
 	BaseURL            *string `json:"base_url" gorm:"column:base_url;default:''"`
+	IsProxy            bool    `json:"is_proxy" gorm:"default:false"`
 	WebsiteURL         *string `json:"website_url" gorm:"column:website_url;type:varchar(1024)"`
 	Other              string  `json:"other"`
 	Balance            float64 `json:"balance"` // in USD
