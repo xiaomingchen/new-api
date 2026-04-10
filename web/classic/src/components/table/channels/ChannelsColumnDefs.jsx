@@ -33,6 +33,7 @@ import {
   timestamp2string,
   renderGroup,
   renderQuota,
+  renderNumber,
   getChannelIcon,
   renderQuotaWithAmount,
   showSuccess,
@@ -571,6 +572,30 @@ export const getChannelsColumns = ({
           );
         }
       },
+    },
+    {
+      key: COLUMN_KEYS.USED_TOKENS,
+      title: t('总 Token'),
+      dataIndex: 'used_tokens',
+      render: (text, record) => (
+        <Tooltip content={t('累计 Token 使用量')}>
+          <Tag color='white' type='ghost' shape='circle'>
+            {renderNumber(Number(record.used_tokens || 0))}
+          </Tag>
+        </Tooltip>
+      ),
+    },
+    {
+      key: COLUMN_KEYS.USED_TOKENS_TODAY,
+      title: t('今日 Token'),
+      dataIndex: 'used_tokens_today',
+      render: (text, record) => (
+        <Tooltip content={t('当日 Token 使用量')}>
+          <Tag color='light-blue' type='light' shape='circle'>
+            {renderNumber(Number(record.used_tokens_today || 0))}
+          </Tag>
+        </Tooltip>
+      ),
     },
     {
       key: COLUMN_KEYS.PRIORITY,

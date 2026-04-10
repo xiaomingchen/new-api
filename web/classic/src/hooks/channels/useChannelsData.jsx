@@ -138,6 +138,8 @@ export const useChannelsData = () => {
     STATUS: 'status',
     RESPONSE_TIME: 'response_time',
     BALANCE: 'balance',
+    USED_TOKENS: 'used_tokens',
+    USED_TOKENS_TODAY: 'used_tokens_today',
     PRIORITY: 'priority',
     WEIGHT: 'weight',
     OPERATE: 'operate',
@@ -178,6 +180,8 @@ export const useChannelsData = () => {
       [COLUMN_KEYS.STATUS]: true,
       [COLUMN_KEYS.RESPONSE_TIME]: true,
       [COLUMN_KEYS.BALANCE]: true,
+      [COLUMN_KEYS.USED_TOKENS]: true,
+      [COLUMN_KEYS.USED_TOKENS_TODAY]: true,
       [COLUMN_KEYS.PRIORITY]: true,
       [COLUMN_KEYS.WEIGHT]: true,
       [COLUMN_KEYS.OPERATE]: true,
@@ -257,6 +261,8 @@ export const useChannelsData = () => {
             name: '标签：' + tag,
             group: '',
             used_quota: 0,
+            used_tokens: 0,
+            used_tokens_today: 0,
             response_time: 0,
             priority: -1,
             weight: -1,
@@ -299,6 +305,8 @@ export const useChannelsData = () => {
           tagChannelDates.status = 1;
         }
         tagChannelDates.used_quota += channels[i].used_quota;
+        tagChannelDates.used_tokens += channels[i].used_tokens || 0;
+        tagChannelDates.used_tokens_today += channels[i].used_tokens_today || 0;
         tagChannelDates.response_time += channels[i].response_time;
         tagChannelDates.response_time = tagChannelDates.response_time / 2;
       }
