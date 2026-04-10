@@ -254,6 +254,40 @@ const renderResponseTime = (responseTime, t) => {
   }
 };
 
+const renderCurrentConnections = (currentConnections, t) => {
+  const value = Number(currentConnections || 0);
+  if (value > 0) {
+    return (
+      <Tag color='green' type='light' shape='circle'>
+        {renderNumber(value)}
+      </Tag>
+    );
+  }
+  return (
+    <Tag color='grey' type='ghost' shape='circle'>
+      0
+    </Tag>
+  );
+};
+
+const renderLastUsedAt = (lastUsedAt, t) => {
+  if (!lastUsedAt) {
+    return (
+      <Tag color='grey' type='ghost' shape='circle'>
+        {t('未使用')}
+      </Tag>
+    );
+  }
+  const formatted = timestamp2string(lastUsedAt);
+  return (
+    <Tooltip content={formatted}>
+      <Tag color='white' type='ghost' shape='circle'>
+        {formatted}
+      </Tag>
+    </Tooltip>
+  );
+};
+
 const isRequestPassThroughEnabled = (record) => {
   if (!record || record.children !== undefined) {
     return false;
@@ -596,6 +630,22 @@ export const getChannelsColumns = ({
           </Tag>
         </Tooltip>
       ),
+    },
+    {
+      key: COLUMN_KEYS.CURRENT_CONNECTIONS,
+      title: t('当前连接数'),
+      dataIndex: 'current_connections',
+      render: (text, record) => (
+        <Tooltip content={t('当前正在使用该渠道的请求数')}>
+          {renderCurrentConnections(record.current_connections, t)}
+        </Tooltip>
+      ),
+    },
+    {
+      key: COLUMN_KEYS.LAST_USED_AT,
+      title: t('最近使用时间'),
+      dataIndex: 'last_used_at',
+      render: (text, record) => renderLastUsedAt(record.last_used_at, t),
     },
     {
       key: COLUMN_KEYS.PRIORITY,

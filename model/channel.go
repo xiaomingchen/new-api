@@ -39,6 +39,8 @@ type Channel struct {
 	UsedQuota          int64   `json:"used_quota" gorm:"bigint;default:0"`
 	UsedTokens         int64   `json:"used_tokens" gorm:"-"`
 	UsedTokensToday    int64   `json:"used_tokens_today" gorm:"-"`
+	CurrentConnections int64   `json:"current_connections" gorm:"-"`
+	LastUsedAt         int64   `json:"last_used_at" gorm:"-"`
 	ModelMapping       *string `json:"model_mapping" gorm:"type:text"`
 	//MaxInputTokens     *int    `json:"max_input_tokens" gorm:"default:0"`
 	StatusCodeMapping *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`

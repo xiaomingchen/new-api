@@ -140,6 +140,8 @@ export const useChannelsData = () => {
     BALANCE: 'balance',
     USED_TOKENS: 'used_tokens',
     USED_TOKENS_TODAY: 'used_tokens_today',
+    CURRENT_CONNECTIONS: 'current_connections',
+    LAST_USED_AT: 'last_used_at',
     PRIORITY: 'priority',
     WEIGHT: 'weight',
     OPERATE: 'operate',
@@ -182,6 +184,8 @@ export const useChannelsData = () => {
       [COLUMN_KEYS.BALANCE]: true,
       [COLUMN_KEYS.USED_TOKENS]: true,
       [COLUMN_KEYS.USED_TOKENS_TODAY]: true,
+      [COLUMN_KEYS.CURRENT_CONNECTIONS]: true,
+      [COLUMN_KEYS.LAST_USED_AT]: true,
       [COLUMN_KEYS.PRIORITY]: true,
       [COLUMN_KEYS.WEIGHT]: true,
       [COLUMN_KEYS.OPERATE]: true,
@@ -263,6 +267,8 @@ export const useChannelsData = () => {
             used_quota: 0,
             used_tokens: 0,
             used_tokens_today: 0,
+            current_connections: 0,
+            last_used_at: 0,
             response_time: 0,
             priority: -1,
             weight: -1,
@@ -307,6 +313,12 @@ export const useChannelsData = () => {
         tagChannelDates.used_quota += channels[i].used_quota;
         tagChannelDates.used_tokens += channels[i].used_tokens || 0;
         tagChannelDates.used_tokens_today += channels[i].used_tokens_today || 0;
+        tagChannelDates.current_connections +=
+          channels[i].current_connections || 0;
+        tagChannelDates.last_used_at = Math.max(
+          tagChannelDates.last_used_at || 0,
+          channels[i].last_used_at || 0,
+        );
         tagChannelDates.response_time += channels[i].response_time;
         tagChannelDates.response_time = tagChannelDates.response_time / 2;
       }
@@ -332,12 +344,16 @@ export const useChannelsData = () => {
     enableTagMode,
     typeKey = activeTypeKey,
     statusF,
+    options = {},
   ) => {
+    const { silent = false } = options;
     if (statusF === undefined) statusF = statusFilter;
 
     const { searchKeyword, searchGroup, searchModel } = getFormValues();
     if (searchKeyword !== '' || searchGroup !== '' || searchModel !== '') {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       await searchChannels(
         enableTagMode,
         typeKey,
@@ -345,13 +361,18 @@ export const useChannelsData = () => {
         page,
         pageSize,
         idSort,
+        { silent },
       );
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
       return;
     }
 
     const reqId = ++requestCounter.current;
-    setLoading(true);
+    if (!silent) {
+      setLoading(true);
+    }
     const typeParam = typeKey !== 'all' ? `&type=${typeKey}` : '';
     const statusParam = statusF !== 'all' ? `&status=${statusF}` : '';
     const res = await API.get(
@@ -359,6 +380,9 @@ export const useChannelsData = () => {
     );
 
     if (res === undefined || reqId !== requestCounter.current) {
+      if (!silent) {
+        setLoading(false);
+      }
       return;
     }
 
@@ -374,10 +398,12 @@ export const useChannelsData = () => {
       }
       setChannelFormat(items, enableTagMode);
       setChannelCount(total);
-    } else {
+    } else if (!silent) {
       showError(message);
     }
-    setLoading(false);
+    if (!silent) {
+      setLoading(false);
+    }
   };
 
   // Search channels
@@ -388,9 +414,13 @@ export const useChannelsData = () => {
     page = 1,
     pageSz = pageSize,
     sortFlag = idSort,
+    options = {},
   ) => {
+    const { silent = false } = options;
     const { searchKeyword, searchGroup, searchModel } = getFormValues();
-    setSearching(true);
+    if (!silent) {
+      setSearching(true);
+    }
     try {
       if (searchKeyword === '' && searchGroup === '' && searchModel === '') {
         await loadChannels(
@@ -400,6 +430,7 @@ export const useChannelsData = () => {
           enableTagMode,
           typeKey,
           statusF,
+          { silent },
         );
         return;
       }
@@ -420,19 +451,29 @@ export const useChannelsData = () => {
         setChannelFormat(items, enableTagMode);
         setChannelCount(total);
         setActivePage(page);
-      } else {
+      } else if (!silent) {
         showError(message);
       }
     } finally {
-      setSearching(false);
+      if (!silent) {
+        setSearching(false);
+      }
     }
   };
 
   // Refresh
-  const refresh = async (page = activePage) => {
+  const refresh = async (page = activePage, options = {}) => {
     const { searchKeyword, searchGroup, searchModel } = getFormValues();
     if (searchKeyword === '' && searchGroup === '' && searchModel === '') {
-      await loadChannels(page, pageSize, idSort, enableTagMode);
+      await loadChannels(
+        page,
+        pageSize,
+        idSort,
+        enableTagMode,
+        activeTypeKey,
+        statusFilter,
+        options,
+      );
     } else {
       await searchChannels(
         enableTagMode,
@@ -441,9 +482,31 @@ export const useChannelsData = () => {
         page,
         pageSize,
         idSort,
+        options,
       );
     }
   };
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'hidden') {
+        return;
+      }
+      refresh(activePage, { silent: true }).catch(() => {});
+    }, 5000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [
+    activePage,
+    pageSize,
+    idSort,
+    enableTagMode,
+    activeTypeKey,
+    statusFilter,
+    formApi,
+  ]);
 
   const upstreamUpdates = useChannelUpstreamUpdates({ t, refresh });
 
