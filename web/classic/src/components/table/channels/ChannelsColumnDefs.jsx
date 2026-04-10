@@ -401,20 +401,21 @@ export const getChannelsColumns = ({
       key: COLUMN_KEYS.NAME,
       title: t('名称'),
       dataIndex: 'name',
-      width: 240,
+      width: 132,
       render: (text, record, index) => {
         const passThroughEnabled = isRequestPassThroughEnabled(record);
         const upstreamUpdateMeta = getUpstreamUpdateMeta(record);
         const pendingAddCount = upstreamUpdateMeta.pendingAddModels.length;
         const pendingRemoveCount =
           upstreamUpdateMeta.pendingRemoveModels.length;
+        const isProxy = record.is_proxy === true;
         const websiteURL =
           typeof record.website_url === 'string' ? record.website_url.trim() : '';
         const showUpstreamUpdateTag =
           upstreamUpdateMeta.supported &&
           upstreamUpdateMeta.enabled &&
           (pendingAddCount > 0 || pendingRemoveCount > 0);
-        const nameNode =
+        const nameTextNode =
           record.remark && record.remark.trim() !== '' ? (
             <Tooltip
               content={
@@ -443,33 +444,39 @@ export const getChannelsColumns = ({
               trigger='hover'
               position='topLeft'
             >
-              <span>{text}</span>
+              <span className='inline-block max-w-full truncate'>{text}</span>
             </Tooltip>
           ) : (
-            <span>{text}</span>
+            <span className='inline-block max-w-full truncate'>{text}</span>
           );
 
-        if (!passThroughEnabled && !showUpstreamUpdateTag && !websiteURL) {
-          return nameNode;
-        }
-
-        return (
-          <Space spacing={6} align='center'>
-            {nameNode}
-            {websiteURL && record.children === undefined && (
+        const nameNode = (
+          <div className='flex min-w-0 max-w-full flex-col'>
+            <div className='min-w-0'>{nameTextNode}</div>
+            {isProxy && websiteURL && record.children === undefined && (
               <Tooltip content={websiteURL} position='top'>
                 <span
-                  className='inline-flex items-center gap-1 text-blue-500 cursor-pointer text-xs'
+                  className='mt-1 inline-flex max-w-full items-center gap-1 truncate text-xs text-blue-500 cursor-pointer'
                   onClick={(event) => {
                     event.stopPropagation();
                     window.open(websiteURL, '_blank', 'noopener');
                   }}
                 >
                   <IconLink />
-                  {t('站点')}
+                  {t('跳转')}
                 </span>
               </Tooltip>
             )}
+          </div>
+        );
+
+        if (!passThroughEnabled && !showUpstreamUpdateTag) {
+          return nameNode;
+        }
+
+        return (
+          <Space spacing={6} align='center'>
+            {nameNode}
             {passThroughEnabled && (
               <Tooltip
                 content={t(
