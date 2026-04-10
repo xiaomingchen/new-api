@@ -527,7 +527,9 @@ export const getLogsColumns = ({
       render: (text, record, index) => {
         let isMultiKey = false;
         let multiKeyIndex = -1;
-        let content = t('渠道') + `：${record.channel}`;
+        const channelName = record.channel_name || t('未知渠道');
+        const channelDisplay = `${channelName} (#${record.channel})`;
+        let content = t('渠道') + `：${channelDisplay}`;
         let affinity = null;
         let showMarker = false;
         let other = getLogOther(record.other);
@@ -541,7 +543,8 @@ export const getLogsColumns = ({
             Array.isArray(adminInfo.use_channel) &&
             adminInfo.use_channel.length > 0
           ) {
-            content = t('渠道') + `：${adminInfo.use_channel.join('->')}`;
+            content =
+              t('渠道链路') + `：${adminInfo.use_channel.join(' -> ')}`;
           }
           if (adminInfo.channel_affinity) {
             affinity = adminInfo.channel_affinity;
@@ -556,13 +559,13 @@ export const getLogsColumns = ({
             record.type === 6) ? (
           <Space>
             <span style={{ position: 'relative', display: 'inline-block' }}>
-              <Tooltip content={record.channel_name || t('未知渠道')}>
+              <Tooltip content={channelDisplay}>
                 <span>
                   <Tag
                     color={colors[parseInt(text) % colors.length]}
                     shape='circle'
                   >
-                    {text}
+                    {channelName}
                   </Tag>
                 </span>
               </Tooltip>
