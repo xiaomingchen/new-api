@@ -1,7 +1,6 @@
 package codex
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -56,14 +55,6 @@ func (a *Adaptor) ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.Rela
 func (a *Adaptor) ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.OpenAIResponsesRequest) (any, error) {
 	isCompact := info != nil && info.RelayMode == relayconstant.RelayModeResponsesCompact
 
-	if len(request.Input) > 0 {
-		sanitizedInput, err := sanitizeCodexResponsesInput(request.Input)
-		if err != nil {
-			return nil, err
-		}
-		request.Input = sanitizedInput
-	}
-
 	if info != nil && info.ChannelMeta != nil && info.ChannelSetting.SystemPrompt != "" {
 		systemPrompt := info.ChannelSetting.SystemPrompt
 
@@ -114,70 +105,6 @@ func (a *Adaptor) ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommo
 	request.MaxOutputTokens = nil
 	request.Temperature = nil
 	return request, nil
-}
-
-func sanitizeCodexResponsesInput(input json.RawMessage) (json.RawMessage, error) {
-	trimmed := bytes.TrimSpace(input)
-	if len(trimmed) == 0 {
-		return input, nil
-	}
-	if trimmed[0] != '{' && trimmed[0] != '[' {
-		return input, nil
-	}
-
-	var decoded any
-	if err := common.Unmarshal(input, &decoded); err != nil {
-		return nil, err
-	}
-
-	if !sanitizeCodexResponsesInputStatus(decoded) {
-		return input, nil
-	}
-
-	sanitized, err := common.Marshal(decoded)
-	if err != nil {
-		return nil, err
-	}
-	return sanitized, nil
-}
-
-func sanitizeCodexResponsesInputStatus(value any) bool {
-	switch typed := value.(type) {
-	case map[string]any:
-		changed := false
-		if status, ok := typed["status"].(string); ok {
-			normalized := normalizeCodexResponsesInputStatus(status)
-			if normalized != status {
-				typed["status"] = normalized
-				changed = true
-			}
-		}
-		for _, child := range typed {
-			if sanitizeCodexResponsesInputStatus(child) {
-				changed = true
-			}
-		}
-		return changed
-	case []any:
-		changed := false
-		for _, child := range typed {
-			if sanitizeCodexResponsesInputStatus(child) {
-				changed = true
-			}
-		}
-		return changed
-	default:
-		return false
-	}
-}
-
-func normalizeCodexResponsesInputStatus(status string) string {
-	switch status {
-	case "", "in_progress", "completed", "incomplete":
-		return status
-	default:
-		return "incomplete"
-	}
 }
 
 func (a *Adaptor) DoRequest(c *gin.Context, info *relaycommon.RelayInfo, requestBody io.Reader) (any, error) {
