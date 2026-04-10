@@ -169,6 +169,12 @@ func GetAllChannels(c *gin.Context) {
 		clearChannelInfo(datum)
 	}
 
+	if err := model.PopulateChannelTokenUsage(channelData); err != nil {
+		common.SysError("failed to populate channel token usage: " + err.Error())
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道 Token 统计失败，请稍后重试"})
+		return
+	}
+
 	countQuery := buildChannelListQuery(groupFilter, statusFilter, -1)
 	var results []struct {
 		Type  int64
@@ -324,6 +330,12 @@ func SearchChannels(c *gin.Context) {
 			filtered = append(filtered, ch)
 		}
 		channelData = filtered
+	}
+
+	if err := model.PopulateChannelTokenUsage(channelData); err != nil {
+		common.SysError("failed to populate channel token usage: " + err.Error())
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道 Token 统计失败，请稍后重试"})
+		return
 	}
 
 	// calculate type counts for search results
