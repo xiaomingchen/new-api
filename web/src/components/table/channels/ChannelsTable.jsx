@@ -136,6 +136,7 @@ const ChannelsTable = (channelsData) => {
       columns={tableColumns}
       dataSource={channels}
       scroll={compactMode ? undefined : { x: 'max-content' }}
+      sticky={compactMode ? false : { top: 0 }}
       pagination={{
         currentPage: activePage,
         pageSize: pageSize,

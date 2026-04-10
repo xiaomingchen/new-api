@@ -241,6 +241,27 @@ export const useChannelsData = () => {
 
   // Data formatting
   const setChannelFormat = (channels, enableTagMode) => {
+    const sortByActivity = (items = []) => {
+      return [...items]
+        .map((item, index) => ({ item, index }))
+        .sort((a, b) => {
+          const aConnections = Number(a.item?.current_connections || 0);
+          const bConnections = Number(b.item?.current_connections || 0);
+          const aActive = aConnections > 0 ? 1 : 0;
+          const bActive = bConnections > 0 ? 1 : 0;
+
+          if (aActive !== bActive) {
+            return bActive - aActive;
+          }
+          if (aConnections !== bConnections) {
+            return bConnections - aConnections;
+          }
+
+          return a.index - b.index;
+        })
+        .map(({ item }) => item);
+    };
+
     let channelDates = [];
     let channelTags = {};
 
@@ -323,7 +344,20 @@ export const useChannelsData = () => {
         tagChannelDates.response_time = tagChannelDates.response_time / 2;
       }
     }
-    setChannels(channelDates);
+
+    if (enableTagMode) {
+      channelDates = channelDates.map((item) => {
+        if (Array.isArray(item.children)) {
+          return {
+            ...item,
+            children: sortByActivity(item.children),
+          };
+        }
+        return item;
+      });
+    }
+
+    setChannels(sortByActivity(channelDates));
   };
 
   // Get form values helper
