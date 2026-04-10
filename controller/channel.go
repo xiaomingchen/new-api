@@ -174,6 +174,7 @@ func GetAllChannels(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道 Token 统计失败，请稍后重试"})
 		return
 	}
+	model.PopulateChannelRuntimeStats(channelData)
 
 	countQuery := buildChannelListQuery(groupFilter, statusFilter, -1)
 	var results []struct {
@@ -337,6 +338,7 @@ func SearchChannels(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道 Token 统计失败，请稍后重试"})
 		return
 	}
+	model.PopulateChannelRuntimeStats(channelData)
 
 	// calculate type counts for search results
 	typeCounts := make(map[int64]int64)
