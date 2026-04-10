@@ -960,7 +960,9 @@ const EditChannelModal = (props) => {
       ) {
         data.base_url = 'https://ark.cn-beijing.volces.com';
       }
-      data.is_proxy = data.is_proxy === true;
+      data.is_proxy =
+        data.is_proxy === true ||
+        (typeof data.website_url === 'string' && data.website_url.trim() !== '');
 
       initialBaseUrlRef.current = data.base_url || '';
       setInputs(data);
@@ -2450,27 +2452,6 @@ const EditChannelModal = (props) => {
                     showClear
                     onChange={(value) => handleInputChange('remark', value)}
                   />
-                  <div className='mb-3'>
-                    <Checkbox
-                      checked={inputs.is_proxy === true}
-                      onChange={(event) =>
-                        handleInputChange('is_proxy', event.target.checked)
-                      }
-                    >
-                      {t('这是代理渠道')}
-                    </Checkbox>
-                  </div>
-                  {inputs.is_proxy && (
-                    <Form.Input
-                      field='website_url'
-                      label={t('跳转地址')}
-                      placeholder={t('请输入 http:// 或 https:// 开头的网址')}
-                      showClear
-                      onChange={(value) =>
-                        handleInputChange('website_url', value)
-                      }
-                    />
-                  )}
 
                   <Row gutter={12}>
                     <Col span={12}>
@@ -3241,6 +3222,28 @@ const EditChannelModal = (props) => {
                         helpText={t('组织，不填则为默认组织')}
                         onChange={(value) =>
                           handleInputChange('openai_organization', value)
+                        }
+                      />
+                    )}
+
+                    <div className='mb-3'>
+                      <Checkbox
+                        checked={inputs.is_proxy === true}
+                        onChange={(event) =>
+                          handleInputChange('is_proxy', event.target.checked)
+                        }
+                      >
+                        {t('这是代理渠道')}
+                      </Checkbox>
+                    </div>
+                    {inputs.is_proxy && (
+                      <Form.Input
+                        field='website_url'
+                        label={t('跳转地址')}
+                        placeholder={t('请输入 http:// 或 https:// 开头的网址')}
+                        showClear
+                        onChange={(value) =>
+                          handleInputChange('website_url', value)
                         }
                       />
                     )}
