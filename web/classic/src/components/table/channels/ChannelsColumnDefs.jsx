@@ -278,11 +278,38 @@ const renderLastUsedAt = (lastUsedAt, t) => {
       </Tag>
     );
   }
+  const now = Math.floor(Date.now() / 1000);
+  const diffSeconds = Math.max(0, now - Number(lastUsedAt));
   const formatted = timestamp2string(lastUsedAt);
+  let label = formatted;
+  let color = 'white';
+  let type = 'ghost';
+
+  if (diffSeconds < 60) {
+    label = t('刚刚');
+    color = 'green';
+    type = 'light';
+  } else if (diffSeconds < 5 * 60) {
+    label = t('5 分钟内');
+    color = 'lime';
+    type = 'light';
+  } else if (diffSeconds < 60 * 60) {
+    label = `${Math.floor(diffSeconds / 60)}${t(' 分钟前')}`;
+    color = 'light-blue';
+    type = 'light';
+  } else if (diffSeconds < 24 * 60 * 60) {
+    label = `${Math.floor(diffSeconds / 3600)}${t(' 小时前')}`;
+    color = 'cyan';
+    type = 'light';
+  } else if (diffSeconds < 7 * 24 * 60 * 60) {
+    label = `${Math.floor(diffSeconds / (24 * 60 * 60))}${t(' 天前')}`;
+    color = 'grey';
+  }
+
   return (
     <Tooltip content={formatted}>
-      <Tag color='white' type='ghost' shape='circle'>
-        {formatted}
+      <Tag color={color} type={type} shape='circle'>
+        {label}
       </Tag>
     </Tooltip>
   );
