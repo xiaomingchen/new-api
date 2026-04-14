@@ -60,6 +60,8 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const [pieData, setPieData] = useState([{ type: 'null', value: '0' }]);
   const [lineData, setLineData] = useState([]);
   const [modelColors, setModelColors] = useState({});
+  const [todayChannelStats, setTodayChannelStats] = useState([]);
+  const [channelStatsLoading, setChannelStatsLoading] = useState(false);
 
   // ========== 图表状态 ==========
   const [activeChartTab, setActiveChartTab] = useState('1');
@@ -234,6 +236,32 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     }
   }, [inputs, isAdminUser]);
 
+  const loadTodayChannelStats = useCallback(async () => {
+    if (!isAdminUser) {
+      setTodayChannelStats([]);
+      return [];
+    }
+
+    setChannelStatsLoading(true);
+    try {
+      const res = await API.get('/api/data/channels/today');
+      const { success, message, data } = res.data;
+      if (success) {
+        const nextStats = Array.isArray(data) ? data : [];
+        setTodayChannelStats(nextStats);
+        return nextStats;
+      }
+
+      showError(message);
+      return [];
+    } catch (err) {
+      console.error(err);
+      return [];
+    } finally {
+      setChannelStatsLoading(false);
+    }
+  }, [isAdminUser]);
+
   const getUserData = useCallback(async () => {
     let res = await API.get(`/api/user/self`);
     const { success, message, data } = res.data;
@@ -247,8 +275,9 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const refresh = useCallback(async () => {
     const data = await loadQuotaData();
     await loadUptimeData();
+    await loadTodayChannelStats();
     return data;
-  }, [loadQuotaData, loadUptimeData]);
+  }, [loadQuotaData, loadTodayChannelStats, loadUptimeData]);
 
   const handleSearchConfirm = useCallback(
     async (updateChartDataCallback) => {
@@ -300,6 +329,8 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     setLineData,
     modelColors,
     setModelColors,
+    todayChannelStats,
+    channelStatsLoading,
 
     // 图表状态
     activeChartTab,
@@ -333,6 +364,7 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     handleCloseModal,
     loadQuotaData,
     loadUserQuotaData,
+    loadTodayChannelStats,
     loadUptimeData,
     getUserData,
     refresh,
