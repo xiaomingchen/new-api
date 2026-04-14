@@ -29,6 +29,7 @@ import ApiInfoPanel from './ApiInfoPanel';
 import AnnouncementsPanel from './AnnouncementsPanel';
 import FaqPanel from './FaqPanel';
 import UptimePanel from './UptimePanel';
+import ChannelStatsPanel from './ChannelStatsPanel';
 import SearchModal from './modals/SearchModal';
 
 import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
@@ -103,6 +104,7 @@ const Dashboard = () => {
     });
     await loadUserData();
     await dashboardData.loadUptimeData();
+    await dashboardData.loadTodayChannelStats();
   };
 
   const handleRefresh = async () => {
@@ -217,6 +219,17 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {dashboardData.isAdminUser && (
+        <div className='mb-4'>
+          <ChannelStatsPanel
+            channelStats={dashboardData.todayChannelStats}
+            loading={dashboardData.channelStatsLoading}
+            CARD_PROPS={CARD_PROPS}
+            t={dashboardData.t}
+          />
+        </div>
+      )}
 
       {/* 系统公告和常见问答卡片 */}
       {dashboardData.hasInfoPanels && (

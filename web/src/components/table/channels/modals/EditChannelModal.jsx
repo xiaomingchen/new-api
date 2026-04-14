@@ -74,6 +74,10 @@ import {
   collectNewDisallowedStatusCodeRedirects,
 } from './statusCodeRiskGuard';
 import {
+  mergeChannelLinkFields,
+  resolveChannelLinkFields,
+} from './channelLinkFields';
+import {
   IconSave,
   IconClose,
   IconServer,
@@ -610,13 +614,6 @@ const EditChannelModal = (props) => {
       });
       return;
     }
-    if (name === 'is_proxy' && value === false) {
-      if (formApiRef.current) {
-        formApiRef.current.setValue('website_url', '');
-      }
-      setInputs((inputs) => ({ ...inputs, is_proxy: false, website_url: '' }));
-      return;
-    }
     setInputs((inputs) => ({ ...inputs, [name]: value }));
     if (name === 'type') {
       let localModels = [];
@@ -960,9 +957,7 @@ const EditChannelModal = (props) => {
       ) {
         data.base_url = 'https://ark.cn-beijing.volces.com';
       }
-      data.is_proxy =
-        data.is_proxy === true ||
-        (typeof data.website_url === 'string' && data.website_url.trim() !== '');
+      Object.assign(data, resolveChannelLinkFields(data));
 
       initialBaseUrlRef.current = data.base_url || '';
       setInputs(data);
@@ -1533,7 +1528,7 @@ const EditChannelModal = (props) => {
 
   const submit = async () => {
     const formValues = formApiRef.current ? formApiRef.current.getValues() : {};
-    let localInputs = { ...formValues };
+    let localInputs = mergeChannelLinkFields(formValues, inputs);
     localInputs.param_override = inputs.param_override;
 
     if (localInputs.type === 57) {
@@ -1731,9 +1726,6 @@ const EditChannelModal = (props) => {
         0,
         localInputs.base_url.length - 1,
       );
-    }
-    if (!localInputs.is_proxy) {
-      localInputs.website_url = '';
     }
     if (localInputs.type === 18 && localInputs.other === '') {
       localInputs.other = 'v2.1';
@@ -3236,17 +3228,20 @@ const EditChannelModal = (props) => {
                         {t('这是代理渠道')}
                       </Checkbox>
                     </div>
-                    {inputs.is_proxy && (
-                      <Form.Input
-                        field='website_url'
-                        label={t('跳转地址')}
-                        placeholder={t('请输入 http:// 或 https:// 开头的网址')}
-                        showClear
-                        onChange={(value) =>
-                          handleInputChange('website_url', value)
-                        }
-                      />
-                    )}
+                    <Form.Input
+                      field='website_url'
+                      label={t('站点链接')}
+                      placeholder={t('请输入 http:// 或 https:// 开头的网址')}
+                      showClear
+                      extraText={
+                        inputs.is_proxy
+                          ? t('开启代理渠道后，该链接会作为前台跳转地址')
+                          : t('可选，用于在渠道列表展示官网、文档或说明页面')
+                      }
+                      onChange={(value) =>
+                        handleInputChange('website_url', value)
+                      }
+                    />
 
                   {/* API Configuration Section */}
                   {showApiConfigCard && (

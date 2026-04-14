@@ -148,15 +148,16 @@ const renderTagType = (t) => {
   );
 };
 
-const getWebsiteDisplayLabel = (websiteURL, t) => {
+const getWebsiteDisplayLabel = (websiteURL, isProxy, t) => {
+  const fallbackLabel = isProxy ? t('跳转') : t('站点');
   if (!websiteURL) {
-    return t('跳转');
+    return fallbackLabel;
   }
   try {
     const parsed = new URL(websiteURL);
-    return parsed.host.replace(/^www\./, '') || t('跳转');
+    return parsed.host.replace(/^www\./, '') || fallbackLabel;
   } catch (error) {
-    return t('跳转');
+    return fallbackLabel;
   }
 };
 
@@ -421,7 +422,7 @@ export const getChannelsColumns = ({
           upstreamUpdateMeta.pendingRemoveModels.length;
         const websiteURL =
           typeof record.website_url === 'string' ? record.website_url.trim() : '';
-        const isProxy = record.is_proxy === true || websiteURL !== '';
+        const isProxy = record.is_proxy === true;
         const showUpstreamUpdateTag =
           upstreamUpdateMeta.supported &&
           upstreamUpdateMeta.enabled &&
@@ -464,7 +465,7 @@ export const getChannelsColumns = ({
         const nameNode = (
           <div className='flex min-w-0 max-w-full flex-col'>
             <div className='min-w-0'>{nameTextNode}</div>
-            {isProxy && websiteURL && record.children === undefined && (
+            {websiteURL && record.children === undefined && (
               <Tooltip content={websiteURL} position='top'>
                 <span
                   className='mt-1 inline-flex max-w-full items-center gap-1 truncate text-[11px] text-sky-600 cursor-pointer hover:underline'
@@ -475,7 +476,7 @@ export const getChannelsColumns = ({
                 >
                   <span className='opacity-70'>-&gt;</span>
                   <span className='truncate'>
-                    {getWebsiteDisplayLabel(websiteURL, t)}
+                    {getWebsiteDisplayLabel(websiteURL, isProxy, t)}
                   </span>
                 </span>
               </Tooltip>
