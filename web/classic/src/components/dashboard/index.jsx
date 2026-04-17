@@ -225,6 +225,7 @@ const Dashboard = () => {
           <ChannelStatsPanel
             channelStats={dashboardData.todayChannelStats}
             loading={dashboardData.channelStatsLoading}
+            onRefresh={dashboardData.loadTodayChannelStats}
             CARD_PROPS={CARD_PROPS}
             t={dashboardData.t}
           />
