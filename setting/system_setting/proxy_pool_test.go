@@ -3,26 +3,49 @@ package system_setting
 import (
 	"testing"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNormalizeProxyPoolConfigGeneratesStableIds(t *testing.T) {
-	setting := ProxyPoolSetting{
+func TestApplyProxyPoolSettingJSONAcceptsArray(t *testing.T) {
+	old := append([]ProxyPoolItem(nil), GetProxyPoolSetting().Proxies...)
+	t.Cleanup(func() {
+		GetProxyPoolSetting().Proxies = old
+	})
+
+	require.NoError(
+		t,
+		ApplyProxyPoolSettingJSON(
+			`[{"id":"pool-a","name":"Pool A","proxy_url":"http://127.0.0.1:7890"}]`,
+		),
+	)
+
+	require.Len(t, GetProxyPoolSetting().Proxies, 1)
+	require.Equal(t, "pool-a", GetProxyPoolSetting().Proxies[0].Id)
+	require.Equal(t, "Pool A", GetProxyPoolSetting().Proxies[0].Name)
+	require.Equal(t, "http://127.0.0.1:7890", GetProxyPoolSetting().Proxies[0].ProxyURL)
+}
+
+func TestApplyProxyPoolSettingJSONAcceptsLegacyWrappedObject(t *testing.T) {
+	old := append([]ProxyPoolItem(nil), GetProxyPoolSetting().Proxies...)
+	t.Cleanup(func() {
+		GetProxyPoolSetting().Proxies = old
+	})
+
+	payload, err := common.Marshal(ProxyPoolSetting{
 		Proxies: []ProxyPoolItem{
-			{Name: "Proxy A", ProxyURL: "http://proxy-a.local:8080"},
-			{Id: "proxy-a", Name: "Proxy B", ProxyURL: "http://proxy-b.local:8080"},
-			{Id: "proxy-a", Name: "Proxy C", ProxyURL: "http://proxy-c.local:8080"},
-			{Name: "   ", ProxyURL: "   "},
+			{
+				Id:       "pool-b",
+				Name:     "Pool B",
+				ProxyURL: "socks5://127.0.0.1:7891",
+			},
 		},
-	}
+	})
+	require.NoError(t, err)
 
-	NormalizeProxyPoolConfig(&setting)
-
-	require.Len(t, setting.Proxies, 3)
-	require.NotEmpty(t, setting.Proxies[0].Id)
-	require.NotEmpty(t, setting.Proxies[1].Id)
-	require.NotEmpty(t, setting.Proxies[2].Id)
-	require.NotEqual(t, setting.Proxies[1].Id, setting.Proxies[2].Id)
-	require.Equal(t, "Proxy A", setting.Proxies[0].Name)
-	require.Equal(t, "http://proxy-a.local:8080", setting.Proxies[0].ProxyURL)
+	require.NoError(t, ApplyProxyPoolSettingJSON(string(payload)))
+	require.Len(t, GetProxyPoolSetting().Proxies, 1)
+	require.Equal(t, "pool-b", GetProxyPoolSetting().Proxies[0].Id)
+	require.Equal(t, "Pool B", GetProxyPoolSetting().Proxies[0].Name)
+	require.Equal(t, "socks5://127.0.0.1:7891", GetProxyPoolSetting().Proxies[0].ProxyURL)
 }
