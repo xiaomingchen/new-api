@@ -609,6 +609,9 @@ func handleConfigUpdate(key, value string) bool {
 	} else if configName == "theme" {
 		system_setting.UpdateAndSyncTheme()
 	}
+	if configName == "proxy_pool_setting" {
+		system_setting.NormalizeProxyPoolSetting()
+	}
 
 	return true // 已处理
 }
