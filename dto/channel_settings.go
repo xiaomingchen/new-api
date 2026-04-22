@@ -1,12 +1,60 @@
 package dto
 
+import (
+	"strings"
+
+	"github.com/QuantumNous/new-api/setting/system_setting"
+)
+
+const (
+	ChannelProxyModeNone   = "none"
+	ChannelProxyModeCustom = "custom"
+	ChannelProxyModePool   = "pool"
+)
+
 type ChannelSettings struct {
 	ForceFormat            bool   `json:"force_format,omitempty"`
 	ThinkingToContent      bool   `json:"thinking_to_content,omitempty"`
 	Proxy                  string `json:"proxy"`
+	ProxyMode              string `json:"proxy_mode,omitempty"`
+	ProxyPoolId            string `json:"proxy_pool_id,omitempty"`
 	PassThroughBodyEnabled bool   `json:"pass_through_body_enabled,omitempty"`
 	SystemPrompt           string `json:"system_prompt,omitempty"`
 	SystemPromptOverride   bool   `json:"system_prompt_override,omitempty"`
+}
+
+func (s ChannelSettings) EffectiveProxyMode() string {
+	mode := strings.ToLower(strings.TrimSpace(s.ProxyMode))
+	switch mode {
+	case "", "manual":
+		switch {
+		case strings.TrimSpace(s.ProxyPoolId) != "":
+			return ChannelProxyModePool
+		case strings.TrimSpace(s.Proxy) != "":
+			return ChannelProxyModeCustom
+		default:
+			return ChannelProxyModeNone
+		}
+	case ChannelProxyModeNone, ChannelProxyModeCustom, ChannelProxyModePool:
+		return mode
+	default:
+		return mode
+	}
+}
+
+func (s ChannelSettings) GetProxyURL() string {
+	proxy := strings.TrimSpace(s.Proxy)
+	switch s.EffectiveProxyMode() {
+	case ChannelProxyModePool:
+		if resolved := system_setting.GetProxyPoolURL(strings.TrimSpace(s.ProxyPoolId)); resolved != "" {
+			return resolved
+		}
+		return proxy
+	case ChannelProxyModeCustom:
+		return proxy
+	default:
+		return ""
+	}
 }
 
 type VertexKeyType string
