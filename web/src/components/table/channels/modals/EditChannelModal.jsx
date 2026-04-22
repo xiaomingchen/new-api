@@ -35,6 +35,7 @@ import {
   Button,
   Typography,
   Checkbox,
+  Radio,
   Banner,
   Modal,
   ImagePreview,
@@ -198,6 +199,8 @@ const EditChannelModal = (props) => {
     force_format: false,
     thinking_to_content: false,
     proxy: '',
+    proxy_mode: 'none',
+    proxy_pool_id: '',
     pass_through_body_enabled: false,
     system_prompt: '',
     system_prompt_override: false,
@@ -229,6 +232,7 @@ const EditChannelModal = (props) => {
   const [originModelOptions, setOriginModelOptions] = useState([]);
   const [modelOptions, setModelOptions] = useState([]);
   const [groupOptions, setGroupOptions] = useState([]);
+  const [proxyPools, setProxyPools] = useState([]);
   const [basicModels, setBasicModels] = useState([]);
   const [fullModels, setFullModels] = useState([]);
   const [modelGroups, setModelGroups] = useState([]);
@@ -291,6 +295,21 @@ const EditChannelModal = (props) => {
   );
   const upstreamDetectedModelsOmittedCount =
     upstreamDetectedModels.length - upstreamDetectedModelsPreview.length;
+  const proxyPoolOptionList = useMemo(
+    () =>
+      proxyPools.map((item) => {
+        const labelBase = item.name || item.id || t('未命名代理');
+        const usageText =
+          typeof item.usage_count === 'number' && item.usage_count > 0
+            ? ` (${item.usage_count})`
+            : '';
+        return {
+          label: `${labelBase}${usageText}`,
+          value: item.id,
+        };
+      }),
+    [proxyPools, t],
+  );
   const modelSearchMatchedCount = useMemo(() => {
     const keyword = modelSearchValue.trim();
     if (!keyword) {
@@ -502,8 +521,11 @@ const EditChannelModal = (props) => {
     force_format: false,
     thinking_to_content: false,
     proxy: '',
+    proxy_mode: 'none',
+    proxy_pool_id: '',
     pass_through_body_enabled: false,
     system_prompt: '',
+    system_prompt_override: false,
   });
   const showApiConfigCard = true; // 控制是否显示 API 配置卡片
   const getInitValues = () => ({ ...originInputs });
@@ -852,6 +874,14 @@ const EditChannelModal = (props) => {
           data.thinking_to_content =
             parsedSettings.thinking_to_content || false;
           data.proxy = parsedSettings.proxy || '';
+          data.proxy_mode =
+            parsedSettings.proxy_mode ||
+            (parsedSettings.proxy_pool_id
+              ? 'pool'
+              : parsedSettings.proxy
+                ? 'custom'
+                : 'none');
+          data.proxy_pool_id = parsedSettings.proxy_pool_id || '';
           data.pass_through_body_enabled =
             parsedSettings.pass_through_body_enabled || false;
           data.system_prompt = parsedSettings.system_prompt || '';
@@ -862,6 +892,8 @@ const EditChannelModal = (props) => {
           data.force_format = false;
           data.thinking_to_content = false;
           data.proxy = '';
+          data.proxy_mode = 'none';
+          data.proxy_pool_id = '';
           data.pass_through_body_enabled = false;
           data.system_prompt = '';
           data.system_prompt_override = false;
@@ -870,6 +902,8 @@ const EditChannelModal = (props) => {
         data.force_format = false;
         data.thinking_to_content = false;
         data.proxy = '';
+        data.proxy_mode = 'none';
+        data.proxy_pool_id = '';
         data.pass_through_body_enabled = false;
         data.system_prompt = '';
         data.system_prompt_override = false;
@@ -977,6 +1011,8 @@ const EditChannelModal = (props) => {
         force_format: data.force_format,
         thinking_to_content: data.thinking_to_content,
         proxy: data.proxy,
+        proxy_mode: data.proxy_mode || 'none',
+        proxy_pool_id: data.proxy_pool_id || '',
         pass_through_body_enabled: data.pass_through_body_enabled,
         system_prompt: data.system_prompt,
         system_prompt_override: data.system_prompt_override || false,
@@ -1016,7 +1052,6 @@ const EditChannelModal = (props) => {
         (data.remark && data.remark.trim()) ||
         (data.priority && data.priority !== 0) ||
         (data.weight && data.weight !== 0) ||
-        (data.proxy && data.proxy.trim()) ||
         (data.system_prompt && data.system_prompt.trim()) ||
         data.thinking_to_content ||
         data.pass_through_body_enabled ||
@@ -1030,6 +1065,29 @@ const EditChannelModal = (props) => {
       showError(message);
     }
     setLoading(false);
+  };
+
+  const loadProxyPools = async () => {
+    try {
+      const res = await API.get('/api/channel/proxy_pools', {
+        skipErrorHandler: true,
+      });
+      if (res && res.data && res.data.success) {
+        const items = Array.isArray(res.data.data?.items)
+          ? res.data.data.items
+          : [];
+        setProxyPools(
+          items.map((item) => ({
+            id: String(item.id || '').trim(),
+            name: String(item.name || '').trim(),
+            proxy_url: String(item.proxy_url || '').trim(),
+            usage_count: Number(item.usage_count) || 0,
+          })),
+        );
+      }
+    } catch (error) {
+      console.error('加载代理池失败:', error);
+    }
   };
 
   const fetchUpstreamModelList = async (name, options = {}) => {
@@ -1314,6 +1372,7 @@ const EditChannelModal = (props) => {
   useEffect(() => {
     setModelSearchValue('');
     if (props.visible) {
+      loadProxyPools();
       if (isEdit) {
         loadChannel();
       } else {
@@ -1366,6 +1425,8 @@ const EditChannelModal = (props) => {
       force_format: false,
       thinking_to_content: false,
       proxy: '',
+      proxy_mode: 'none',
+      proxy_pool_id: '',
       pass_through_body_enabled: false,
       system_prompt: '',
       system_prompt_override: false,
@@ -1736,6 +1797,8 @@ const EditChannelModal = (props) => {
       force_format: localInputs.force_format || false,
       thinking_to_content: localInputs.thinking_to_content || false,
       proxy: localInputs.proxy || '',
+      proxy_mode: localInputs.proxy_mode || 'none',
+      proxy_pool_id: localInputs.proxy_pool_id || '',
       pass_through_body_enabled: localInputs.pass_through_body_enabled || false,
       system_prompt: localInputs.system_prompt || '',
       system_prompt_override: localInputs.system_prompt_override || false,
@@ -1816,6 +1879,8 @@ const EditChannelModal = (props) => {
     delete localInputs.force_format;
     delete localInputs.thinking_to_content;
     delete localInputs.proxy;
+    delete localInputs.proxy_mode;
+    delete localInputs.proxy_pool_id;
     delete localInputs.pass_through_body_enabled;
     delete localInputs.system_prompt;
     delete localInputs.system_prompt_override;
@@ -2507,8 +2572,6 @@ const EditChannelModal = (props) => {
 
                   <Form.Switch field='thinking_to_content' label={t('思考内容转换')} checkedText={t('开')} uncheckedText={t('关')} onChange={(value) => handleChannelSettingsChange('thinking_to_content', value)} extraText={t('将 reasoning_content 转换为 <think> 标签拼接到内容中')} />
                   <Form.Switch field='pass_through_body_enabled' label={t('透传请求体')} checkedText={t('开')} uncheckedText={t('关')} onChange={(value) => handleChannelSettingsChange('pass_through_body_enabled', value)} extraText={t('启用请求体透传功能')} />
-
-                  <Form.Input field='proxy' label={t('代理地址')} placeholder={t('例如: socks5://user:pass@host:port')} onChange={(value) => handleChannelSettingsChange('proxy', value)} showClear extraText={t('用于配置网络代理，支持 socks5 协议')} />
 
                   <Form.TextArea field='system_prompt' label={t('系统提示词')} placeholder={t('输入系统提示词，用户的系统提示词将优先于此设置')} onChange={(value) => handleChannelSettingsChange('system_prompt', value)} autosize showClear extraText={t('用户优先：如果用户在请求中指定了系统提示词，将优先使用用户的设置')} />
                   <Form.Switch field='system_prompt_override' label={t('系统提示词拼接')} checkedText={t('开')} uncheckedText={t('关')} onChange={(value) => handleChannelSettingsChange('system_prompt_override', value)} extraText={t('如果用户请求中包含系统提示词，则使用此设置拼接到用户的系统提示词前面')} />
@@ -3600,6 +3663,70 @@ const EditChannelModal = (props) => {
                     position='top'
                     onChange={(value) => handleInputChange('groups', value)}
                   />
+
+                  {/* Proxy settings - Core Config */}
+                  <div className='mt-4'>
+                    <Form.RadioGroup
+                      field='proxy_mode'
+                      label={t('代理方式')}
+                      initValue={inputs.proxy_mode || 'none'}
+                      onChange={(value) =>
+                        handleChannelSettingsChange('proxy_mode', value)
+                      }
+                      extraText={t(
+                        '这里只会影响当前渠道的上游请求，不会自动接管容器里的所有请求。',
+                      )}
+                    >
+                      <Radio value='none'>{t('不使用代理')}</Radio>
+                      <Radio value='pool'>{t('使用代理池')}</Radio>
+                      <Radio value='custom'>{t('自定义代理')}</Radio>
+                    </Form.RadioGroup>
+
+                    {inputs.proxy_mode === 'pool' && (
+                      <>
+                        <Form.Select
+                          field='proxy_pool_id'
+                          label={t('代理池')}
+                          placeholder={t('请选择代理池')}
+                          optionList={proxyPoolOptionList}
+                          showClear
+                          style={{ width: '100%' }}
+                          onChange={(value) =>
+                            handleChannelSettingsChange('proxy_pool_id', value)
+                          }
+                          extraText={t(
+                            '代理池按稳定 ID 选择，重命名不影响已绑定的渠道。',
+                          )}
+                        />
+                        {proxyPoolOptionList.length === 0 && (
+                          <Banner
+                            type='tip'
+                            className='mt-2'
+                            description={t(
+                              '当前没有可用代理池，请先到系统设置中添加。',
+                            )}
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {inputs.proxy_mode === 'custom' && (
+                      <Form.Input
+                        field='proxy'
+                        label={t('代理地址')}
+                        placeholder={t(
+                          '例如: socks5://user:pass@host:port',
+                        )}
+                        onChange={(value) =>
+                          handleChannelSettingsChange('proxy', value)
+                        }
+                        showClear
+                        extraText={t(
+                          '手动代理仍然保留兼容性，适合临时或单渠道使用。',
+                        )}
+                      />
+                    )}
+                  </div>
 
                   {/* Model Mapping - Core Config */}
                   <JSONEditor

@@ -43,6 +43,7 @@ import {
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import CustomOAuthSetting from './CustomOAuthSetting';
+import ProxyPoolSetting from './ProxyPoolSetting';
 
 const SystemSetting = () => {
   const { t } = useTranslation();
@@ -782,6 +783,10 @@ const SystemSetting = () => {
                   </Form.Checkbox>
                   <Button onClick={submitWorker}>{t('更新Worker设置')}</Button>
                 </Form.Section>
+              </Card>
+
+              <Card>
+                <ProxyPoolSetting />
               </Card>
 
               <Card>

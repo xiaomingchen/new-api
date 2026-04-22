@@ -18,6 +18,7 @@ import (
 	"github.com/QuantumNous/new-api/relay/channel/gemini"
 	"github.com/QuantumNous/new-api/relay/channel/ollama"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting/system_setting"
 
 	"github.com/gin-gonic/gin"
 )
@@ -456,6 +457,23 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 	// 校验 channel settings
 	if err := channel.ValidateSettings(); err != nil {
 		return fmt.Errorf("渠道额外设置[channel setting] 格式错误：%s", err.Error())
+	}
+	channelSetting, err := channel.ParseSetting()
+	if err != nil {
+		return fmt.Errorf("渠道代理设置格式错误：%s", err.Error())
+	}
+	switch channelSetting.EffectiveProxyMode() {
+	case dto.ChannelProxyModeNone, dto.ChannelProxyModeCustom:
+	case dto.ChannelProxyModePool:
+		proxyPoolId := strings.TrimSpace(channelSetting.ProxyPoolId)
+		if proxyPoolId == "" {
+			return fmt.Errorf("使用代理池时必须选择一个代理")
+		}
+		if _, ok := system_setting.GetProxyPoolByID(proxyPoolId); !ok {
+			return fmt.Errorf("所选代理池不存在，请先在系统设置中配置")
+		}
+	default:
+		return fmt.Errorf("渠道代理模式不正确")
 	}
 
 	websiteURL := ""

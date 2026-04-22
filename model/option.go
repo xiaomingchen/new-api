@@ -542,6 +542,9 @@ func handleConfigUpdate(key, value string) bool {
 		// 同步磁盘缓存配置到 common 包
 		performance_setting.UpdateAndSync()
 	}
+	if configName == "proxy_pool_setting" {
+		system_setting.NormalizeProxyPoolSetting()
+	}
 
 	return true // 已处理
 }

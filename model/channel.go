@@ -858,15 +858,23 @@ func (channel *Channel) ValidateSettings() error {
 	return nil
 }
 
-func (channel *Channel) GetSetting() dto.ChannelSettings {
+func (channel *Channel) ParseSetting() (dto.ChannelSettings, error) {
 	setting := dto.ChannelSettings{}
 	if channel.Setting != nil && *channel.Setting != "" {
-		err := common.Unmarshal([]byte(*channel.Setting), &setting)
-		if err != nil {
-			common.SysLog(fmt.Sprintf("failed to unmarshal setting: channel_id=%d, error=%v", channel.Id, err))
-			channel.Setting = nil // 清空设置以避免后续错误
-			_ = channel.Save()    // 保存修改
+		if err := common.Unmarshal([]byte(*channel.Setting), &setting); err != nil {
+			return dto.ChannelSettings{}, err
 		}
+	}
+	return setting, nil
+}
+
+func (channel *Channel) GetSetting() dto.ChannelSettings {
+	setting, err := channel.ParseSetting()
+	if err != nil {
+		common.SysLog(fmt.Sprintf("failed to unmarshal setting: channel_id=%d, error=%v", channel.Id, err))
+		channel.Setting = nil // 清空设置以避免后续错误
+		_ = channel.Save()    // 保存修改
+		return dto.ChannelSettings{}
 	}
 	return setting
 }
@@ -900,6 +908,29 @@ func (channel *Channel) SetOtherSettings(setting dto.ChannelOtherSettings) {
 		return
 	}
 	channel.OtherSettings = string(settingBytes)
+}
+
+func CountProxyPoolUsage() (map[string]int, error) {
+	counts := make(map[string]int)
+	var channels []Channel
+	if err := DB.Select("setting").Find(&channels).Error; err != nil {
+		return nil, err
+	}
+	for _, channel := range channels {
+		setting, err := channel.ParseSetting()
+		if err != nil {
+			continue
+		}
+		if setting.EffectiveProxyMode() != dto.ChannelProxyModePool {
+			continue
+		}
+		proxyPoolID := strings.TrimSpace(setting.ProxyPoolId)
+		if proxyPoolID == "" {
+			continue
+		}
+		counts[proxyPoolID]++
+	}
+	return counts, nil
 }
 
 func (channel *Channel) GetParamOverride() map[string]interface{} {
