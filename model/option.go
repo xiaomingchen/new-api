@@ -567,6 +567,13 @@ func handleConfigUpdate(key, value string) bool {
 		return false // 未注册的配置
 	}
 
+	if configName == "proxy_pool_setting" && configKey == "proxies" {
+		if err := system_setting.ApplyProxyPoolSettingJSON(value); err != nil {
+			common.SysLog("failed to update proxy pool setting: " + err.Error())
+		}
+		return true
+	}
+
 	// 更新配置
 	configMap := map[string]string{
 		configKey: value,

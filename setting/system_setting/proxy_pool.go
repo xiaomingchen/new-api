@@ -1,6 +1,7 @@
 package system_setting
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -52,6 +53,31 @@ func GetProxyPoolURL(id string) string {
 
 func NormalizeProxyPoolSetting() {
 	NormalizeProxyPoolConfig(&proxyPoolSetting)
+}
+
+func ApplyProxyPoolSettingJSON(value string) error {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" || trimmed == "null" {
+		proxyPoolSetting.Proxies = []ProxyPoolItem{}
+		NormalizeProxyPoolSetting()
+		return nil
+	}
+
+	var proxies []ProxyPoolItem
+	if err := common.UnmarshalJsonStr(trimmed, &proxies); err == nil {
+		proxyPoolSetting.Proxies = proxies
+		NormalizeProxyPoolSetting()
+		return nil
+	}
+
+	var wrapped ProxyPoolSetting
+	if err := common.UnmarshalJsonStr(trimmed, &wrapped); err == nil {
+		proxyPoolSetting.Proxies = wrapped.Proxies
+		NormalizeProxyPoolSetting()
+		return nil
+	}
+
+	return fmt.Errorf("代理池配置格式错误")
 }
 
 func NormalizeProxyPoolConfig(setting *ProxyPoolSetting) {

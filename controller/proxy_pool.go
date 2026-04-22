@@ -131,7 +131,7 @@ func UpdateProxyPools(c *gin.Context) {
 	proxyPoolSetting := system_setting.ProxyPoolSetting{
 		Proxies: normalized,
 	}
-	proxyPoolSettingBytes, err := common.Marshal(proxyPoolSetting)
+	proxyPoolSettingBytes, err := common.Marshal(proxyPoolSetting.Proxies)
 	if err != nil {
 		common.ApiError(c, err)
 		return
