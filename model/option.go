@@ -588,6 +588,8 @@ func handleConfigUpdate(key, value string) bool {
 	} else if configName == "billing_setting" {
 		InvalidatePricingCache()
 		ratio_setting.InvalidateExposedDataCache()
+	} else if configName == "theme" {
+		system_setting.UpdateAndSyncTheme()
 	}
 	if configName == "proxy_pool_setting" {
 		system_setting.NormalizeProxyPoolSetting()
