@@ -1,6 +1,9 @@
 .github
 .git
 *.md
+!LICENSE
+!NOTICE
+!THIRD-PARTY-LICENSES.md
 .vscode
 .gitignore
 Makefile
@@ -12,4 +15,3 @@ docs
 /web/default/dist
 /web/classic/node_modules
 /web/classic/dist
-!THIRD-PARTY-LICENSES.md
