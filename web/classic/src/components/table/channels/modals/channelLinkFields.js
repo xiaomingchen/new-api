@@ -8,8 +8,7 @@ export const resolveChannelLinkFields = (channel = {}) => ({
 
 export const mergeChannelLinkFields = (formValues = {}, inputs = {}) => {
   const nextInputs = { ...formValues };
-  const isProxy =
-    nextInputs.is_proxy === true || inputs.is_proxy === true;
+  const isProxy = nextInputs.is_proxy === true || inputs.is_proxy === true;
   const websiteUrl = normalizeWebsiteUrl(
     nextInputs.website_url ?? inputs.website_url,
   );

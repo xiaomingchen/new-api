@@ -3271,7 +3271,6 @@ const EditChannelModal = (props) => {
                                   </Space>
                                 </div>
                               )}
-
                               {batch && (
                                 <Banner
                                   type='info'
