@@ -2927,6 +2927,16 @@ const EditChannelModal = (props) => {
                         disabled={isIonetLocked}
                       />
 
+                      <Form.Input
+                        field='name'
+                        label={t('名称')}
+                        placeholder={t('请为渠道命名')}
+                        rules={[{ required: true, message: t('请为渠道命名') }]}
+                        showClear
+                        onChange={(value) => handleInputChange('name', value)}
+                        autoComplete='new-password'
+                      />
+
                       {inputs.type === 57 && (
                         <Banner
                           type='warning'
