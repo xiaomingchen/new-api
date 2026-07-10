@@ -150,7 +150,10 @@ export function formatPrice(
   usdExchangeRate = 1,
   selectedGroup?: string
 ): string {
-  if (model.quota_type === QUOTA_TYPE_VALUES.REQUEST) {
+  if (
+    !model.pricing_configured ||
+    model.quota_type === QUOTA_TYPE_VALUES.REQUEST
+  ) {
     return '-'
   }
 
@@ -185,7 +188,10 @@ export function formatGroupPrice(
   usdExchangeRate = 1,
   groupRatio: Record<string, number>
 ): string {
-  if (model.quota_type === QUOTA_TYPE_VALUES.REQUEST) {
+  if (
+    !model.pricing_configured ||
+    model.quota_type === QUOTA_TYPE_VALUES.REQUEST
+  ) {
     return '-'
   }
 
@@ -218,7 +224,10 @@ export function formatFixedPrice(
   usdExchangeRate = 1,
   groupRatio: Record<string, number>
 ): string {
-  if (model.quota_type !== QUOTA_TYPE_VALUES.REQUEST) {
+  if (
+    !model.pricing_configured ||
+    model.quota_type !== QUOTA_TYPE_VALUES.REQUEST
+  ) {
     return '-'
   }
 
@@ -249,7 +258,10 @@ export function formatRequestPrice(
   usdExchangeRate = 1,
   selectedGroup?: string
 ): string {
-  if (model.quota_type !== QUOTA_TYPE_VALUES.REQUEST) {
+  if (
+    !model.pricing_configured ||
+    model.quota_type !== QUOTA_TYPE_VALUES.REQUEST
+  ) {
     return '-'
   }
 

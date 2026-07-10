@@ -655,6 +655,16 @@ export const calculateModelPrice = ({
     };
   }
 
+  if (!record.pricing_configured) {
+    return {
+      price: '-',
+      isPerToken: false,
+      isTokensDisplay: false,
+      usedGroup,
+      usedGroupRatio,
+    };
+  }
+
   // 3. 根据计费类型计算价格
   if (record.quota_type === 0) {
     // 按量计费

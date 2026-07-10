@@ -243,6 +243,11 @@ func TestListModelsIncludesTieredBillingModel(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "tiered_expr", visiblePricing.BillingMode)
 	require.NotEmpty(t, visiblePricing.BillingExpr)
+	require.True(t, visiblePricing.PricingConfigured)
+
+	unpricedPricing, ok := pricingByName["zz-unpriced-model"]
+	require.True(t, ok)
+	require.False(t, unpricedPricing.PricingConfigured)
 
 	emptyExprPricing, ok := pricingByName["zz-tiered-empty-expr-model"]
 	require.True(t, ok)
