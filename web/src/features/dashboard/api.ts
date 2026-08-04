@@ -51,6 +51,35 @@ export async function getUserQuotaDates(
   return res.data
 }
 
+// ============================================================================
+// Channel Stats
+// ============================================================================
+
+/** Today's channel statistics */
+export interface ChannelStatsItem {
+  channel_id: number
+  channel_name: string
+  model_name: string
+  used_tokens: number
+  request_count: number
+  today_amount: number
+  total_amount: number
+  success_count: number
+  error_count: number
+  success_rate: number
+}
+
+/**
+ * Get today's channel statistics
+ */
+export async function getTodayChannelStats() {
+  const res = await api.get<{
+    success: boolean
+    data: ChannelStatsItem[]
+  }>('/api/channel/stats/today')
+  return res.data
+}
+
 // ----------------------------------------------------------------------------
 // System Monitoring
 // ----------------------------------------------------------------------------

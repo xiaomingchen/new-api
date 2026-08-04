@@ -22,6 +22,7 @@ import {
   CreditCard,
   FileText,
   FlaskConical,
+  Globe,
   Key,
   LayoutDashboard,
   ListTodo,
@@ -123,6 +124,11 @@ export function useSidebarData(): SidebarData {
             title: t('Channels'),
             url: '/channels',
             icon: Radio,
+          },
+          {
+            title: t('Proxy Pool'),
+            url: '/proxy-pool',
+            icon: Globe,
           },
           {
             title: t('Models'),

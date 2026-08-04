@@ -47,6 +47,8 @@ export const channelSchema = z.object({
   test_time: z.number(),
   response_time: z.number(), // in milliseconds
   base_url: z.string().nullish(),
+  is_proxy: z.boolean().default(false),
+  website_url: z.string().nullish(),
   other: z.string().default(''),
   balance: z.number().default(0), // in USD
   balance_updated_time: z.number(),
@@ -86,6 +88,8 @@ export interface ChannelSettings {
   pass_through_body_enabled?: boolean
   system_prompt?: string
   system_prompt_override?: boolean
+  proxy_pool_id?: string
+  proxy_mode?: 'none' | 'custom' | 'pool' | string
   http_protocol?: 'auto' | 'http1' | string
   http2_connection_shards?: number
 }

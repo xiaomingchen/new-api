@@ -33,12 +33,18 @@ type Channel struct {
 	TestTime           int64   `json:"test_time" gorm:"bigint"`
 	ResponseTime       int     `json:"response_time"` // in milliseconds
 	BaseURL            *string `json:"base_url" gorm:"column:base_url;default:''"`
+	IsProxy            bool    `json:"is_proxy" gorm:"default:false"`
+	WebsiteURL         *string `json:"website_url" gorm:"column:website_url;type:varchar(1024)"`
 	Other              string  `json:"other"`
 	Balance            float64 `json:"balance"` // in USD
 	BalanceUpdatedTime int64   `json:"balance_updated_time" gorm:"bigint"`
 	Models             string  `json:"models"`
 	Group              string  `json:"group" gorm:"type:varchar(64);default:'default'"`
 	UsedQuota          int64   `json:"used_quota" gorm:"bigint;default:0"`
+	UsedTokens         int64   `json:"used_tokens" gorm:"-"`
+	UsedTokensToday    int64   `json:"used_tokens_today" gorm:"-"`
+	CurrentConnections int64   `json:"current_connections" gorm:"-"`
+	LastUsedAt         int64   `json:"last_used_at" gorm:"-"`
 	ModelMapping       *string `json:"model_mapping" gorm:"type:text"`
 	//MaxInputTokens     *int    `json:"max_input_tokens" gorm:"default:0"`
 	StatusCodeMapping *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`

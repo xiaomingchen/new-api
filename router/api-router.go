@@ -320,6 +320,15 @@ func SetApiRouter(router *gin.Engine) {
 			prefillGroupRoute.DELETE("/:id", controller.DeletePrefillGroup)
 		}
 
+		// Proxy pool management
+		proxyPoolRoute := apiRouter.Group("/proxy_pool")
+		proxyPoolRoute.Use(middleware.AdminAuth())
+		{
+			proxyPoolRoute.GET("/", controller.GetProxyPools)
+			proxyPoolRoute.POST("/", controller.UpdateProxyPools)
+			proxyPoolRoute.POST("/probe", controller.ProbeProxyPools)
+		}
+
 		mjRoute := apiRouter.Group("/mj")
 		mjRoute.GET("/self", middleware.UserAuth(), controller.GetUserMidjourney)
 		mjRoute.GET("/", middleware.AdminAuth(), controller.GetAllMidjourney)

@@ -62,6 +62,7 @@ import {
 } from '../../hooks/use-status-data'
 import { AnnouncementsPanel } from './announcements-panel'
 import { ApiInfoPanel } from './api-info-panel'
+import { ChannelStatsPanel } from './channel-stats-panel'
 import { FAQPanel } from './faq-panel'
 import { PerformanceHealthPanel } from './performance-health-panel'
 import { SummaryCards } from './summary-cards'
@@ -773,6 +774,7 @@ export function OverviewDashboard() {
                   <PerformanceHealthPanel />
                 </CardStaggerItem>
               )}
+              {isAdmin && <ChannelStatsPanel />}
               {showApiInfoPanel && (
                 <CardStaggerItem>
                   <ApiInfoPanel />

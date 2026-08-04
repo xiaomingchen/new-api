@@ -17,6 +17,10 @@ type ChannelSettings struct {
 	PassThroughBodyEnabled bool   `json:"pass_through_body_enabled,omitempty"`
 	SystemPrompt           string `json:"system_prompt,omitempty"`
 	SystemPromptOverride   bool   `json:"system_prompt_override,omitempty"`
+	// ProxyPoolId references a proxy pool entry by ID.
+	ProxyPoolId string `json:"proxy_pool_id,omitempty"`
+	// ProxyMode controls how the proxy is applied: "none", "custom", "pool".
+	ProxyMode string `json:"proxy_mode,omitempty"`
 	// HTTPProtocol controls outbound HTTP version negotiation for this channel.
 	// Accepted values: "", "auto" (default), "http1".
 	HTTPProtocol string `json:"http_protocol,omitempty"`
@@ -563,5 +567,21 @@ func validateAdvancedCustomRouteAuth(index int, auth *AdvancedCustomRouteAuth) e
 		return nil
 	default:
 		return fmt.Errorf("advanced_custom.advanced_routes[%d].auth.type is invalid: %s", index, auth.Type)
+	}
+}
+const (
+	ChannelProxyModeNone   = "none"
+	ChannelProxyModeCustom = "custom"
+	ChannelProxyModePool   = "pool"
+)
+
+func (s ChannelSettings) EffectiveProxyMode() string {
+	switch {
+	case strings.TrimSpace(s.ProxyPoolId) != "":
+		return ChannelProxyModePool
+	case strings.TrimSpace(s.Proxy) != "":
+		return ChannelProxyModeCustom
+	default:
+		return ChannelProxyModeNone
 	}
 }
