@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { api } from '@/lib/api'
 
 import type {
+  ChannelStatsItem,
   FlowQuotaDataItem,
   QuotaDataItem,
   UptimeGroupResult,
@@ -89,5 +90,18 @@ export async function getUptimeStatus() {
   const res = await api.get<{ success: boolean; data: UptimeGroupResult[] }>(
     '/api/uptime/status'
   )
+  return res.data
+}
+
+// ----------------------------------------------------------------------------
+// Channel Stats
+// ----------------------------------------------------------------------------
+
+// Get today's channel stats
+export async function getChannelStats() {
+  const res = await api.get<{
+    success: boolean
+    data: ChannelStatsItem[]
+  }>('/api/data/channels/today')
   return res.data
 }

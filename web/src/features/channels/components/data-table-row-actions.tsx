@@ -21,6 +21,7 @@ import type { Row } from '@tanstack/react-table'
 import {
   MoreHorizontal,
   Boxes,
+  ExternalLink,
   Pencil,
   PlugZap,
   Gauge,
@@ -288,6 +289,20 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <DollarSign size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+
+          {/* Open Website */}
+          {channel.website_url && (
+            <DropdownMenuItem
+              onClick={() => {
+                window.open(channel.website_url!, '_blank', 'noopener,noreferrer')
+              }}
+            >
+              {t('Open Website')}
+              <DropdownMenuShortcut>
+                <ExternalLink size={16} />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
 
           {/* Fetch Models */}
           <DropdownMenuItem onClick={handleFetchModels}>

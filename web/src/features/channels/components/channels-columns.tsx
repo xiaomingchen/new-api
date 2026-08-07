@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronRight,
+  ExternalLink,
   ListOrdered,
   Shuffle,
   SlidersHorizontal,
@@ -654,6 +655,14 @@ export function useChannelsColumns(
           const settings = parseChannelSettings(channel.setting)
           const isPassThrough = settings.pass_through_body_enabled === true
           const hasParamOverride = Boolean(channel.param_override?.trim())
+          const websiteHost = (() => {
+            if (!channel.website_url) return ''
+            try {
+              return new URL(channel.website_url).host.replace(/^www\./, '')
+            } catch {
+              return ''
+            }
+          })()
 
           return (
             <div className='flex max-w-full min-w-0 items-center gap-2'>
@@ -711,6 +720,21 @@ export function useChannelsColumns(
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                )}
+                {channel.website_url && (
+                  <a
+                    href={channel.website_url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    onClick={(e) => e.stopPropagation()}
+                    className='text-info hover:text-foreground inline-flex max-w-full items-center gap-1 text-xs hover:underline'
+                  >
+                    <ExternalLink className='size-3 shrink-0 opacity-70' />
+                    <span className='truncate'>
+                      {websiteHost ||
+                        (channel.is_proxy ? t('Jump') : t('Site'))}
+                    </span>
+                  </a>
                 )}
               </div>
             </div>
@@ -1086,6 +1110,125 @@ export function useChannelsColumns(
         cell: ({ row }) => <WeightCell channel={row.original} />,
         size: 90,
         enableSorting: false,
+      },
+
+      // Total Used Tokens column (sorted client-side, see ChannelsTable)
+      {
+        accessorKey: 'used_tokens',
+        header: t('Total Tokens'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => {
+          const tokens = row.getValue('used_tokens') as number
+          return (
+            <span className='text-muted-foreground tabular-nums text-xs'>
+              {tokens.toLocaleString()}
+            </span>
+          )
+        },
+        size: 110,
+      },
+
+      // Today's Used Tokens column (sorted client-side, see ChannelsTable)
+      {
+        accessorKey: 'used_tokens_today',
+        header: t('Today Tokens'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => {
+          const tokens = row.getValue('used_tokens_today') as number
+          return (
+            <span className='text-info tabular-nums text-xs'>
+              {tokens.toLocaleString()}
+            </span>
+          )
+        },
+        size: 110,
+      },
+
+      // Today's Consumption column (sorted client-side, see ChannelsTable)
+      {
+        accessorKey: 'used_quota_today',
+        header: t('Today Cost'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => {
+          const quota = row.getValue('used_quota_today') as number
+          return (
+            <span className='text-muted-foreground tabular-nums text-xs'>
+              {formatQuotaWithCurrency(quota)}
+            </span>
+          )
+        },
+        size: 110,
+      },
+
+      // Current Connections column (sorted client-side, see ChannelsTable)
+      {
+        accessorKey: 'current_connections',
+        header: t('Connections'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => {
+          const connections = Number(
+            row.getValue('current_connections') ?? 0
+          )
+          if (connections > 0) {
+            return (
+              <span className='text-success text-xs font-medium tabular-nums'>
+                {connections.toLocaleString()}
+              </span>
+            )
+          }
+          return (
+            <span className='text-muted-foreground tabular-nums text-xs'>
+              0
+            </span>
+          )
+        },
+        size: 100,
+      },
+
+      // Last Used column (sorted client-side, see ChannelsTable)
+      {
+        accessorKey: 'last_used_at',
+        header: t('Last Used'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => {
+          const lastUsedAt = Number(row.getValue('last_used_at') ?? 0)
+          if (!lastUsedAt) {
+            return (
+              <span className='text-muted-foreground text-xs'>
+                {t('Never')}
+              </span>
+            )
+          }
+          const diffSeconds = Math.max(
+            0,
+            Math.floor(Date.now() / 1000) - lastUsedAt
+          )
+          const colorClass =
+            diffSeconds < 60
+              ? 'text-success font-medium'
+              : diffSeconds < 3600
+                ? 'text-info'
+                : 'text-muted-foreground'
+          return (
+            <TooltipProvider delay={100}>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span
+                      className={`tabular-nums text-xs ${colorClass}`}
+                    />
+                  }
+                >
+                  {formatRelativeTime(lastUsedAt, locale)}
+                </TooltipTrigger>
+                <TooltipContent side='top'>
+                  {formatTimestampToDate(lastUsedAt)}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )
+        },
+        size: 110,
       },
 
       // Balance column (Used/Remaining)

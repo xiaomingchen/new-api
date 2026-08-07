@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -168,6 +169,12 @@ func GetAllChannels(c *gin.Context) {
 	for _, datum := range channelData {
 		clearChannelInfo(datum)
 	}
+	if err := model.PopulateChannelTokenUsage(channelData); err != nil {
+		common.SysError("failed to populate channel token usage: " + err.Error())
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道 Token 统计失败，请稍后重试"})
+		return
+	}
+	model.PopulateChannelRuntimeStats(channelData)
 
 	countQuery := buildChannelListQuery(groupFilter, statusFilter, -1)
 	var results []struct {
@@ -333,6 +340,14 @@ func SearchChannels(c *gin.Context) {
 		channelData = filtered
 	}
 
+	if err := model.PopulateChannelTokenUsage(channelData); err != nil {
+		common.SysError("failed to populate channel token usage: " + err.Error())
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道 Token 统计失败，请稍后重试"})
+		return
+	}
+	model.PopulateChannelRuntimeStats(channelData)
+
+	// calculate type counts for search results
 	// calculate type counts for search results
 	typeCounts := make(map[int64]int64)
 	for _, channel := range channelData {
@@ -520,18 +535,22 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 		trimmedKey := strings.TrimSpace(channel.Key)
 		if isAdd || trimmedKey != "" {
 			if !strings.HasPrefix(trimmedKey, "{") {
-				return fmt.Errorf("Codex key must be a valid JSON object")
-			}
-			var keyMap map[string]any
-			if err := common.Unmarshal([]byte(trimmedKey), &keyMap); err != nil {
-				return fmt.Errorf("Codex key must be a valid JSON object")
-			}
-			if v, ok := keyMap["access_token"]; !ok || v == nil || strings.TrimSpace(fmt.Sprintf("%v", v)) == "" {
-				return fmt.Errorf("Codex key JSON must include access_token")
-			}
-			if v, ok := keyMap["account_id"]; !ok || v == nil || strings.TrimSpace(fmt.Sprintf("%v", v)) == "" {
 				return fmt.Errorf("Codex key JSON must include account_id")
 			}
+		}
+	}
+
+	websiteURL := ""
+	if channel.WebsiteURL != nil {
+		websiteURL = strings.TrimSpace(*channel.WebsiteURL)
+	}
+	if channel.IsProxy && websiteURL == "" {
+		return fmt.Errorf("代理渠道必须配置跳转地址")
+	}
+	if websiteURL != "" {
+		parsedURL, err := url.ParseRequestURI(websiteURL)
+		if err != nil || parsedURL == nil || parsedURL.Host == "" {
+			return fmt.Errorf("关联网站地址必须是合法的 http:// 或 https:// URL")
 		}
 	}
 

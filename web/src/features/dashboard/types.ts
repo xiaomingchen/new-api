@@ -252,6 +252,23 @@ export interface ProcessedUserChartData {
 }
 
 // ============================================================================
+// Channel Stats Types
+// ============================================================================
+
+export interface ChannelStatsItem {
+  channel_id: number
+  channel_name: string
+  model_name: string
+  used_tokens: number
+  request_count: number
+  today_amount: number
+  total_amount: number
+  success_count: number
+  error_count: number
+  success_rate: number
+}
+
+// ============================================================================
 // Announcement Types
 // ============================================================================
 

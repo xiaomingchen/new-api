@@ -627,6 +627,34 @@ export function getChannelTableRowId(row: Channel | TagRow): string {
 }
 
 /**
+ * Sort channels so channels currently in use (active connections > 0) are
+ * pinned to the top, ordered by connection count descending. The relative
+ * order of all other rows is preserved (stable sort).
+ */
+export function sortChannelsByActivity<T extends Channel | TagRow>(
+  items: T[]
+): T[] {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const aConnections = Number(a.item?.current_connections || 0)
+      const bConnections = Number(b.item?.current_connections || 0)
+      const aActive = aConnections > 0 ? 1 : 0
+      const bActive = bConnections > 0 ? 1 : 0
+
+      if (aActive !== bActive) {
+        return bActive - aActive
+      }
+      if (aConnections !== bConnections) {
+        return bConnections - aConnections
+      }
+
+      return a.index - b.index
+    })
+    .map(({ item }) => item)
+}
+
+/**
  * Aggregate channels by tag for tag mode display
  * Converts flat array into tree structure grouped by tag
  */
@@ -651,6 +679,11 @@ export function aggregateChannelsByTag(
         status: undefined as unknown as number,
         group: '',
         used_quota: 0,
+        used_tokens: 0,
+        used_tokens_today: 0,
+        used_quota_today: 0,
+        current_connections: 0,
+        last_used_at: 0,
         response_time: 0,
         priority: -1 as unknown as number | null,
         weight: -1 as unknown as number | null,
@@ -676,6 +709,16 @@ export function aggregateChannelsByTag(
 
     // Aggregate used_quota (sum)
     tagRow.used_quota += channel.used_quota
+
+    // Aggregate usage stats (sum) and last_used_at (latest)
+    tagRow.used_tokens += channel.used_tokens || 0
+    tagRow.used_tokens_today += channel.used_tokens_today || 0
+    tagRow.used_quota_today += channel.used_quota_today || 0
+    tagRow.current_connections += channel.current_connections || 0
+    tagRow.last_used_at = Math.max(
+      tagRow.last_used_at || 0,
+      channel.last_used_at || 0
+    )
 
     // Aggregate response_time (average)
     tagRow.response_time =

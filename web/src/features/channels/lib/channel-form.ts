@@ -198,6 +198,8 @@ export const channelFormSchema = z
     name: z.string().min(1, ERROR_MESSAGES.REQUIRED_NAME),
     type: z.number().min(0, ERROR_MESSAGES.REQUIRED_TYPE),
     base_url: z.string().optional(),
+    is_proxy: z.boolean().optional(),
+    website_url: z.string().optional(),
     key: z.string(),
     openai_organization: z.string().optional(),
     models: z.string().min(1, ERROR_MESSAGES.REQUIRED_MODELS),
@@ -289,6 +291,14 @@ export const channelFormSchema = z
         ctx,
         'base_url',
         'Base URL is required for this channel type'
+      )
+    }
+
+    if (data.is_proxy && !data.website_url?.trim()) {
+      addRequiredIssue(
+        ctx,
+        'website_url',
+        'Website URL is required when proxy is enabled'
       )
     }
 
@@ -402,6 +412,8 @@ export const CHANNEL_FORM_DEFAULT_VALUES: ChannelFormValues = {
   name: '',
   type: 1,
   base_url: '',
+  is_proxy: false,
+  website_url: '',
   key: '',
   openai_organization: '',
   models: '',
@@ -554,6 +566,8 @@ export function transformChannelToFormDefaults(
     name: channel.name || '',
     type: channel.type,
     base_url: channel.base_url || '',
+    is_proxy: channel.is_proxy || false,
+    website_url: channel.website_url || '',
     key: '', // Never populate key from backend for security
     openai_organization: channel.openai_organization || '',
     models: channel.models || '',
@@ -780,6 +794,8 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
     name: formData.name,
     type: formData.type,
     base_url: normalizeBaseUrl(formData.base_url) || null,
+    is_proxy: formData.is_proxy || false,
+    website_url: formData.website_url || null,
     key: formData.key,
     openai_organization: formData.openai_organization || null,
     models: formData.models,
@@ -829,6 +845,8 @@ export function transformFormDataToUpdatePayload(
     name: formData.name,
     type: formData.type,
     base_url: normalizeBaseUrl(formData.base_url) || null,
+    is_proxy: formData.is_proxy || false,
+    website_url: formData.website_url || null,
     openai_organization: formData.openai_organization || null,
     models: formData.models,
     group: formatGroups(formData.group),

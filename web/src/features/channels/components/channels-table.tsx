@@ -59,6 +59,7 @@ import {
   isTagAggregateRow,
   getChannelTypeIcon,
   getChannelTypeLabel,
+  sortChannelsByActivity,
 } from '../lib'
 import type { Channel, ChannelSortBy } from '../types'
 import { ChannelCard } from './channel-card'
@@ -79,6 +80,16 @@ const CHANNEL_SORTABLE_COLUMNS = new Set<ChannelSortBy>([
   'balance',
   'response_time',
   'test_time',
+])
+
+// Runtime usage stat columns are computed server-side per request and cannot
+// be sorted by the backend, so they are sorted client-side within the page.
+const CHANNEL_CLIENT_SORTABLE_COLUMNS = new Set([
+  'used_tokens',
+  'used_tokens_today',
+  'used_quota_today',
+  'current_connections',
+  'last_used_at',
 ])
 
 function isDisabledChannelRow(channel: Channel) {
@@ -290,16 +301,39 @@ export function ChannelsTable() {
     placeholderData: (previousData) => previousData,
   })
 
-  // Apply tag aggregation if tag mode is enabled
+  // Apply tag aggregation if tag mode is enabled, then order rows: an
+  // explicit client-side stat sort wins; otherwise channels currently in use
+  // are pinned to the top (stable for the rest).
   const channels = useMemo(() => {
     const rawChannels = data?.data?.items || []
+    const activeSort = sorting[0]
+    const statSort =
+      activeSort && CHANNEL_CLIENT_SORTABLE_COLUMNS.has(activeSort.id)
+        ? activeSort
+        : null
 
-    if (enableTagMode && rawChannels.length > 0) {
-      return aggregateChannelsByTag(rawChannels)
+    const orderRows = <T extends Channel>(rows: T[]): T[] => {
+      if (!statSort) {
+        return sortChannelsByActivity(rows)
+      }
+      const key = statSort.id as keyof Channel
+      return [...rows].sort((a, b) => {
+        const aValue = Number(a[key] ?? 0)
+        const bValue = Number(b[key] ?? 0)
+        return statSort.desc ? bValue - aValue : aValue - bValue
+      })
     }
 
-    return rawChannels
-  }, [data, enableTagMode])
+    if (enableTagMode && rawChannels.length > 0) {
+      return orderRows(aggregateChannelsByTag(rawChannels)).map((row) =>
+        isTagAggregateRow(row)
+          ? { ...row, children: orderRows(row.children) }
+          : row
+      )
+    }
+
+    return orderRows(rawChannels)
+  }, [data, enableTagMode, sorting])
 
   const totalCount = data?.data?.total || 0
   const typeCounts = data?.data?.type_counts

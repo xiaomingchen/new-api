@@ -47,12 +47,19 @@ export const channelSchema = z.object({
   test_time: z.number(),
   response_time: z.number(), // in milliseconds
   base_url: z.string().nullish(),
+  is_proxy: z.boolean().default(false),
+  website_url: z.string().nullish(),
   other: z.string().default(''),
   balance: z.number().default(0), // in USD
   balance_updated_time: z.number(),
   models: z.string().default(''),
   group: z.string().default('default'),
   used_quota: z.number().default(0),
+  used_tokens: z.number().default(0),
+  used_tokens_today: z.number().default(0),
+  used_quota_today: z.number().default(0),
+  current_connections: z.number().default(0),
+  last_used_at: z.number().default(0),
   model_mapping: z.string().nullish(),
   status_code_mapping: z.string().nullish(),
   priority: z.number().nullish(),
@@ -361,6 +368,8 @@ export interface ChannelFormData {
   header_override?: string
   settings?: string
   other?: string
+  is_proxy?: boolean
+  website_url?: string
   // Multi-key specific
   multi_key_mode?: 'single' | 'batch' | 'multi_to_single'
   multi_key_type?: 'random' | 'polling'

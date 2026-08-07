@@ -2793,6 +2793,55 @@ export function ChannelMutateDrawer({
                               />
                             )}
 
+                            {/* is_proxy toggle */}
+                            <FormField
+                              control={form.control}
+                              name='is_proxy'
+                              render={({ field }) => (
+                                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-3'>
+                                  <div className='space-y-0.5'>
+                                    <FormLabel>{t('Proxy Channel')}</FormLabel>
+                                    <FormDescription>
+                                      {t(
+                                        'Mark this channel as a proxy/relay to other API gateways'
+                                      )}
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value ?? false}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+
+                            {/* website_url input */}
+                            <FormField
+                              control={form.control}
+                              name='website_url'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('Website URL')}</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder={t(
+                                        'https://example.com or https://platform.openai.com'
+                                      )}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {t(
+                                      'Link to the upstream provider dashboard or documentation page'
+                                    )}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
                             {currentType === CHANNEL_TYPE_ADVANCED_CUSTOM && (
                               <FormField
                                 control={form.control}
