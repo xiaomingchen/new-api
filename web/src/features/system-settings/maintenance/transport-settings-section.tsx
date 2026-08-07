@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -72,75 +72,68 @@ const buildFormDefaults = (
   },
 })
 
-const normalizeDefaults = (
-  defaults: TransportSettingsSectionProps['defaultValues']
-): FlatTransportDefaults => ({
-  'transport_setting.max_idle_conns': defaults['transport_setting.max_idle_conns'] ?? 0,
-  'transport_setting.max_idle_conns_per_host': defaults['transport_setting.max_idle_conns_per_host'] ?? 0,
-  'transport_setting.idle_conn_timeout': defaults['transport_setting.idle_conn_timeout'] ?? 0,
-})
-
-function submitTransportSettings(
-  values: TransportFormValues,
-  updateOption: ReturnType<typeof import('../hooks/use-update-option').useUpdateOption>,
-  t: ReturnType<typeof import('react-i18next').useTranslation>['t']
-) {
-  const items: Array<{ key: string; value: string }> = []
-  if (values.transport_setting?.max_idle_conns !== undefined) {
-    items.push({ key: 'transport_setting.max_idle_conns', value: String(values.transport_setting.max_idle_conns) })
-  }
-  if (values.transport_setting?.max_idle_conns_per_host !== undefined) {
-    items.push({ key: 'transport_setting.max_idle_conns_per_host', value: String(values.transport_setting.max_idle_conns_per_host) })
-  }
-  if (values.transport_setting?.idle_conn_timeout !== undefined) {
-    items.push({ key: 'transport_setting.idle_conn_timeout', value: String(values.transport_setting.idle_conn_timeout) })
-  }
-  return Promise.allSettled(
-    items.map((item) => updateOption.mutateAsync({ key: item.key, value: item.value }))
-  ).then((results) => {
-    const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-    if (failed.length > 0) {
-      toast.error(t('Failed to save transport settings'))
-      return
-    }
-    toast.success(t('Transport settings saved'))
-  })
-}
-
 export function TransportSettingsSection({
   defaultValues,
 }: TransportSettingsSectionProps) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
-  const normalizedDefaults = useMemo(() => normalizeDefaults(defaultValues), [defaultValues])
+
+  const formDefaults = useMemo(
+    () => buildFormDefaults(defaultValues),
+    [defaultValues]
+  )
 
   const form = useForm<TransportFormInput, unknown, TransportFormValues>({
     resolver: zodResolver(transportSchema),
-    defaultValues: useMemo(() => buildFormDefaults(defaultValues), []),
+    defaultValues: formDefaults,
   })
 
-  const { reset, handleSubmit, formState } = form
-  const resetRef = useResetForm(reset, normalizedDefaults, buildFormDefaults)
-  const prevActionsRef = useRef<SettingsPageFormActions | null>(null)
+  useResetForm(form, formDefaults)
 
-  useEffect(() => {
-    if (resetRef.current) resetRef.current(normalizedDefaults)
-  }, [normalizedDefaults, resetRef])
-
-  const onSubmit = handleSubmit(async (values) => {
-    await submitTransportSettings(values, updateOption, t)
-  })
+  const onSubmit = async (values: TransportFormValues) => {
+    const items = [
+      {
+        key: 'transport_setting.max_idle_conns',
+        value: values.transport_setting.max_idle_conns,
+      },
+      {
+        key: 'transport_setting.max_idle_conns_per_host',
+        value: values.transport_setting.max_idle_conns_per_host,
+      },
+      {
+        key: 'transport_setting.idle_conn_timeout',
+        value: values.transport_setting.idle_conn_timeout,
+      },
+    ]
+    const results = await Promise.allSettled(
+      items.map((item) =>
+        updateOption.mutateAsync({ key: item.key, value: String(item.value) })
+      )
+    )
+    if (results.some((result) => result.status === 'rejected')) {
+      toast.error(t('Failed to save transport settings'))
+      return
+    }
+    toast.success(t('Transport settings saved'))
+  }
 
   return (
-    <SettingsSection
-      title={t('HTTP Transport Pool')}
-      description={t('Configure idle connection pool sizing for upstream relay HTTP clients. Set to 0 to use environment defaults.')}
-      formActions={prevActionsRef}
-      onReset={() => resetRef.current?.(normalizedDefaults)}
-      isDirty={formState.isDirty}
-    >
+    <SettingsSection title={t('HTTP Transport Pool')}>
       <Form {...form}>
-        <SettingsForm onSubmit={onSubmit} id='transport-settings-form'>
+        <SettingsForm
+          onSubmit={form.handleSubmit(onSubmit)}
+          id='transport-settings-form'
+        >
+          <SettingsPageFormActions
+            onSave={form.handleSubmit(onSubmit)}
+            onReset={() => form.reset(formDefaults)}
+            isSaving={updateOption.isPending}
+          />
+          <p className='text-muted-foreground text-sm'>
+            {t(
+              'Configure idle connection pool sizing for upstream relay HTTP clients. Set to 0 to use environment defaults.'
+            )}
+          </p>
           <div className='space-y-4'>
             <FormField
               control={form.control}

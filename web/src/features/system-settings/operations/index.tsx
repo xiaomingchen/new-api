@@ -56,6 +56,9 @@ const defaultOperationsSettings: OperationsSettings = {
   'perf_metrics_setting.flush_interval': 5,
   'perf_metrics_setting.bucket_time': 'hour',
   'perf_metrics_setting.retention_days': 0,
+  'transport_setting.max_idle_conns': 0,
+  'transport_setting.max_idle_conns_per_host': 0,
+  'transport_setting.idle_conn_timeout': 0,
 }
 
 export function OperationsSettings() {
