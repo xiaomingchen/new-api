@@ -53,7 +53,7 @@ import {
   formatQuotaWithCurrency,
   getCurrencyLabel,
 } from '@/lib/currency'
-import { formatTimestampToDate } from '@/lib/format'
+import { formatTimestampToDate, formatTokens } from '@/lib/format'
 import { truncateText } from '@/lib/utils'
 
 import { getCodexUsage } from '../api'
@@ -1120,8 +1120,11 @@ export function useChannelsColumns(
         cell: ({ row }) => {
           const tokens = row.getValue('used_tokens') as number
           return (
-            <span className='text-muted-foreground tabular-nums text-xs'>
-              {tokens.toLocaleString()}
+            <span
+              className='text-muted-foreground tabular-nums text-xs'
+              title={tokens.toLocaleString()}
+            >
+              {formatTokens(tokens)}
             </span>
           )
         },
@@ -1136,8 +1139,11 @@ export function useChannelsColumns(
         cell: ({ row }) => {
           const tokens = row.getValue('used_tokens_today') as number
           return (
-            <span className='text-info tabular-nums text-xs'>
-              {tokens.toLocaleString()}
+            <span
+              className='text-info tabular-nums text-xs'
+              title={tokens.toLocaleString()}
+            >
+              {formatTokens(tokens)}
             </span>
           )
         },
