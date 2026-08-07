@@ -20,6 +20,10 @@ type Option struct {
 	Value string `json:"value"`
 }
 
+// TransportSettingChangedHook is called when transport_setting options are updated
+// via the system settings API. Set by the service package to ResetProxyClientCache.
+var TransportSettingChangedHook func()
+
 func AllOption() ([]*Option, error) {
 	var options []*Option
 	var err error
@@ -636,6 +640,10 @@ func handleConfigUpdate(key, value string) bool {
 	} else if configName == "billing_setting" {
 		InvalidatePricingCache()
 		ratio_setting.InvalidateExposedDataCache()
+	} else if configName == "transport_setting" {
+		if TransportSettingChangedHook != nil {
+			TransportSettingChangedHook()
+		}
 	}
 
 	return true // 已处理

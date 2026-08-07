@@ -362,6 +362,9 @@ export type OperationsSettings = {
   'perf_metrics_setting.flush_interval': number
   'perf_metrics_setting.bucket_time': 'hour' | 'minute' | '5min'
   'perf_metrics_setting.retention_days': number
+  'transport_setting.max_idle_conns': number
+  'transport_setting.max_idle_conns_per_host': number
+  'transport_setting.idle_conn_timeout': number
 }
 
 export type SecuritySettings = {

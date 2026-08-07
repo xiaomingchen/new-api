@@ -29,6 +29,7 @@ import {
   sortChannelsByActivity,
 } from '@/features/channels/lib'
 import { formatQuotaWithCurrency } from '@/lib/currency'
+import { formatTokens } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 const CHANNELS_PAGE_SIZE = 100
@@ -87,7 +88,7 @@ export function ChannelStatsPanel() {
           <MetricCell icon={Activity} label={t('In Use')} value={summary.inUseCount.toLocaleString()} loading={loading} tone='success' />
           <MetricCell icon={RadioTower} label={t('Active Connections')} value={summary.activeConnections.toLocaleString()} loading={loading} tone='info' />
           <MetricCell icon={Wallet} label={t('Today Spend')} value={formatQuotaWithCurrency(summary.todayCost)} loading={loading} tone='warning' />
-          <MetricCell icon={Link2} label={t('Today Tokens')} value={summary.todayTokens.toLocaleString()} loading={loading} tone='info' />
+          <MetricCell icon={Link2} label={t('Today Tokens')} value={formatTokens(summary.todayTokens)} loading={loading} tone='info' />
         </div>
 
         {loading ? (

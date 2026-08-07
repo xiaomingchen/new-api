@@ -154,13 +154,11 @@ func (t *ssrfProtectedRoundTripper) newTransport(proxyURL *url.URL) *http.Transp
 	}
 
 	transport := &http.Transport{
-		MaxIdleConns:        common.RelayMaxIdleConns,
-		MaxIdleConnsPerHost: common.RelayMaxIdleConnsPerHost,
-		IdleConnTimeout:     time.Duration(common.RelayIdleConnTimeout) * time.Second,
-		ForceAttemptHTTP2:   true,
-		Proxy:               proxyFunc,
-		DialContext:         dialContext,
+		ForceAttemptHTTP2: true,
+		Proxy:             proxyFunc,
+		DialContext:       dialContext,
 	}
+	applyTransportPoolSettings(transport)
 	if common.TLSInsecureSkipVerify {
 		transport.TLSClientConfig = common.InsecureTLSConfig
 	}

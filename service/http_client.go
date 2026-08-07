@@ -13,6 +13,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/logger"
+	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 
@@ -88,14 +89,33 @@ func newRelayHTTPTransport() *http.Transport {
 			ExpectContinueTimeout: time.Second,
 		}
 	}
-	transport.MaxIdleConns = common.RelayMaxIdleConns
-	transport.MaxIdleConnsPerHost = common.RelayMaxIdleConnsPerHost
-	transport.IdleConnTimeout = time.Duration(common.RelayIdleConnTimeout) * time.Second
+	applyTransportPoolSettings(transport)
 	transport.ForceAttemptHTTP2 = true
 	if common.TLSInsecureSkipVerify {
 		transport.TLSClientConfig = common.InsecureTLSConfig
 	}
 	return transport
+}
+
+// applyTransportPoolSettings applies the global transport pool settings to the
+// transport, falling back to the common package env-defaults when the setting is zero.
+func applyTransportPoolSettings(transport *http.Transport) {
+	ts := system_setting.GetTransportSetting()
+	if ts.MaxIdleConns > 0 {
+		transport.MaxIdleConns = ts.MaxIdleConns
+	} else {
+		transport.MaxIdleConns = common.RelayMaxIdleConns
+	}
+	if ts.MaxIdleConnsPerHost > 0 {
+		transport.MaxIdleConnsPerHost = ts.MaxIdleConnsPerHost
+	} else {
+		transport.MaxIdleConnsPerHost = common.RelayMaxIdleConnsPerHost
+	}
+	if ts.IdleConnTimeout > 0 {
+		transport.IdleConnTimeout = time.Duration(ts.IdleConnTimeout) * time.Second
+	} else {
+		transport.IdleConnTimeout = time.Duration(common.RelayIdleConnTimeout) * time.Second
+	}
 }
 
 func newRelayHTTPClient(transport http.RoundTripper) *http.Client {
@@ -443,4 +463,8 @@ func ResetProxyClientCache() {
 // Deprecated: use GetHttpClientWithProxy.
 func NewProxyHttpClient(proxyURL string) (*http.Client, error) {
 	return GetHttpClientWithProxy(proxyURL)
+}
+
+func init() {
+	model.TransportSettingChangedHook = ResetProxyClientCache
 }

@@ -214,13 +214,19 @@ export function formatLogQuota(quota: number): string {
 }
 
 /**
- * Format tokens count with K/M suffixes
+ * Format a token count as `1.2B`, `42M`, `980K`, or `512`.
  */
-export function formatTokens(tokens: number): string {
-  if (tokens === 0) return '-'
-  if (tokens < 1000) return tokens.toString()
-  if (tokens < 1000000) return `${(tokens / 1000).toFixed(1)}K`
-  return `${(tokens / 1000000).toFixed(2)}M`
+export function formatTokens(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '0'
+  if (value >= 1_000_000_000_000)
+    return `${(value / 1_000_000_000_000).toFixed(2)}T`
+  if (value >= 1_000_000_000)
+    return `${(value / 1_000_000_000).toFixed(value >= 10_000_000_000 ? 1 : 2)}B`
+  if (value >= 1_000_000)
+    return `${(value / 1_000_000).toFixed(value >= 10_000_000 ? 1 : 2)}M`
+  if (value >= 1_000)
+    return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K`
+  return value.toLocaleString()
 }
 
 /**

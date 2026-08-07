@@ -22,6 +22,7 @@ import { MonitoringSettingsSection } from '../integrations/monitoring-settings-s
 import { WorkerSettingsSection } from '../integrations/worker-settings-section'
 import { LogSettingsSection } from '../maintenance/log-settings-section'
 import { PerformanceSection } from '../maintenance/performance-section'
+import { TransportSettingsSection } from '../maintenance/transport-settings-section'
 import { UpdateCheckerSection } from '../maintenance/update-checker-section'
 import type { OperationsSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
@@ -138,6 +139,22 @@ const OPERATIONS_SECTIONS = [
       <UpdateCheckerSection
         currentVersion={currentVersion}
         startTime={startTime}
+      />
+    ),
+  },
+  {
+    id: 'transport',
+    titleKey: 'HTTP Transport Pool',
+    build: (settings: OperationsSettings) => (
+      <TransportSettingsSection
+        defaultValues={{
+          'transport_setting.max_idle_conns':
+            settings['transport_setting.max_idle_conns'] ?? 0,
+          'transport_setting.max_idle_conns_per_host':
+            settings['transport_setting.max_idle_conns_per_host'] ?? 0,
+          'transport_setting.idle_conn_timeout':
+            settings['transport_setting.idle_conn_timeout'] ?? 0,
+        }}
       />
     ),
   },

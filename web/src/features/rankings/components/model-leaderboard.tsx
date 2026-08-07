@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next'
 
 import { getLobeIcon } from '@/lib/lobe-icon'
 
-import { formatTokens } from '../lib/format'
+import { formatTokens } from '@/lib/format'
 import type { ModelRanking } from '../types'
 import { ModelLink, VendorLink } from './entity-links'
 import { GrowthText } from './growth-text'
